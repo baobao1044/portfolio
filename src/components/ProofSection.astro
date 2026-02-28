@@ -1,0 +1,43 @@
+---
+interface Props {
+  data?: Record<string, unknown>;
+}
+
+const { data = {} } = Astro.props as Props;
+
+const asText = (value: unknown): string | null =>
+  typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+
+const title = asText(data.title) ?? "Proof";
+const intro = asText(data.intro) ?? "Signals from shipped repositories.";
+const lines = Array.isArray(data.lines)
+  ? (data.lines.filter((l) => typeof l === "string") as string[])
+  : [];
+---
+
+<section id="proof" class="relative bg-black px-4 py-32 sm:px-6 lg:px-10 font-mono" data-bg-color="#000000" aria-labelledby="proof-heading">
+  <div class="mx-auto w-full max-w-4xl relative z-10" data-animate>
+    <h2 id="proof-heading" class="font-bebas text-[10vw] md:text-[6vw] tracking-tighter text-[#ff0000] mb-4">
+      {title}
+    </h2>
+    <p class="text-lg font-black text-[#ff0000]/50 mb-12 uppercase tracking-widest">
+      {intro}
+    </p>
+
+    <ul class="space-y-0">
+      {lines.map((line, index) => (
+        <li
+          data-animate
+          class="flex items-center justify-between py-5 border-b-2 border-[#ff0000]/20 transition-all duration-300 hover:bg-[#ff0000] hover:px-6 group"
+        >
+          <span class="font-black text-white group-hover:text-black transition-colors uppercase text-xl">
+             {line.split("  ")[0]}
+          </span>
+          <span class="text-sm font-black uppercase tracking-widest text-[#ff0000] group-hover:text-black transition-colors">
+            {line.split("  ")[1] ?? "VERIFIED"}
+          </span>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>

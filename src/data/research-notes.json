@@ -1,0 +1,37 @@
+[
+  {
+    "repo": "https://github.com/baobao1044/Agent-flow",
+    "oneLiner": "Production-focused multi-agent orchestration platform with FastAPI control plane and workspace governance.",
+    "keyTech": ["Python", "FastAPI", "RBAC", "JWT", "TypeScript dashboard"],
+    "runSnippet": "pip install -r requirements.txt && python -m api.main",
+    "proofSnippet": "README lists backend tests, perf/chaos smoke tests, and quick start with `python -m api.main`."
+  },
+  {
+    "repo": "https://github.com/baobao1044/vagi-1",
+    "oneLiner": "CPU-first vAGI kernel/orchestrator branch focused on verifier-guided training loops.",
+    "keyTech": ["Rust", "Verifier-guided training", "Causal gradient injection", "World-model prefetching"],
+    "runSnippet": "cargo run -p vagi-kernel --bin train_titanium",
+    "proofSnippet": "README documents verifier-guided loop modules and includes `cargo run -p vagi-kernel --bin train_titanium`."
+  },
+  {
+    "repo": "https://github.com/baobao1044/AOT-Compiler",
+    "oneLiner": "Ahead-of-time compiler for typed Python subset that targets optimized LLVM IR.",
+    "keyTech": ["Python", "LLVM IR", "Zero-copy buffer bridge", "FFI", "Parallel runtime"],
+    "runSnippet": "python -m venv .venv && pip install -e .[dev,llvm] && pytest -v",
+    "proofSnippet": "README highlights zero-copy NDArray bridge and quick start commands for install + tests."
+  },
+  {
+    "repo": "https://github.com/baobao1044/Chat-bot-AI-framework",
+    "oneLiner": "Rule-based chatbot framework with safety firewall, session context, and graph memory.",
+    "keyTech": ["Python", "Rule pipeline", "Safety taxonomy v2", "Graph memory", "Trace logging"],
+    "runSnippet": "python3 cli/chat.py --show-trace --stats --user-id local_cli_user --interaction-mode auto",
+    "proofSnippet": "README states rule-based chatbot MVP with safety taxonomy, graph memory, and chat CLI run command."
+  },
+  {
+    "repo": "https://github.com/baobao1044/NO-LLMs-AI-framework",
+    "oneLiner": "Verifier-first agent training framework that iterates task execution and checks without LLM training.",
+    "keyTech": ["TypeScript + Python workflow", "Verifier pipeline", "Logging loop", "Makefile ops"],
+    "runSnippet": "make train && make train-status",
+    "proofSnippet": "README repeats `make train` and `make train-status` and describes loop `task -> execute -> verify -> log -> done`."
+  }
+]

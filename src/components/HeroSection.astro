@@ -1,0 +1,68 @@
+---
+import { Image } from "astro:assets";
+---
+
+<section class="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#ff0000]" id="hero" data-bg-color="#ff0000">
+  <!-- Giant background text with parallax -->
+  <div class="absolute inset-0 flex items-center justify-center select-none pointer-events-none opacity-[0.06] z-0 overflow-hidden" data-parallax="0.3">
+    <span class="text-[25vw] font-bebas text-black leading-none whitespace-nowrap">
+      BAOBG
+    </span>
+  </div>
+
+  <div class="relative z-10 text-center px-6 max-w-5xl mx-auto">
+
+    <p class="font-mono text-black/60 text-sm md:text-base tracking-[0.5em] uppercase mb-8" data-hero="subtitle">
+      Creative Developer & Designer
+    </p>
+
+    <h1 class="font-bebas text-[18vw] md:text-[14vw] leading-[0.85] tracking-tighter text-black mb-8" data-hero="title">
+      BAO BG
+    </h1>
+
+    <p class="font-inter font-bold text-black/80 max-w-2xl text-lg md:text-2xl leading-relaxed mx-auto mb-12" data-hero="desc">
+      I craft high-performance web experiences with clean code and bold design.
+    </p>
+
+    <div class="flex justify-center gap-6 mb-16" data-hero="buttons">
+      <a href="#projects" data-magnetic class="btn-hover px-10 py-4 bg-black text-[#ff0000] font-black text-sm md:text-base tracking-widest uppercase">
+        VIEW PROJECTS
+      </a>
+      <a href="#contact" data-magnetic class="btn-hover px-10 py-4 text-black font-black text-sm md:text-base tracking-widest uppercase" style="border: 3px solid black;">
+        CONTACT
+      </a>
+    </div>
+
+  </div>
+
+  <!-- Marquee strip -->
+  <div class="absolute bottom-20 left-0 w-full overflow-hidden z-10 pointer-events-none">
+    <div class="marquee-track">
+      <div class="marquee-content">
+        <span class="font-bebas text-[5vw] md:text-[3vw] text-black/10 tracking-wider">
+          DEVELOPER &bull; DESIGNER &bull; CREATOR &bull; DEVELOPER &bull; DESIGNER &bull; CREATOR &bull; DEVELOPER &bull; DESIGNER &bull; CREATOR &bull; DEVELOPER &bull; DESIGNER &bull; CREATOR &bull;&nbsp;
+        </span>
+        <span class="font-bebas text-[5vw] md:text-[3vw] text-black/10 tracking-wider">
+          DEVELOPER &bull; DESIGNER &bull; CREATOR &bull; DEVELOPER &bull; DESIGNER &bull; CREATOR &bull; DEVELOPER &bull; DESIGNER &bull; CREATOR &bull; DEVELOPER &bull; DESIGNER &bull; CREATOR &bull;&nbsp;
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scroll Indicator -->
+  <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-20" data-hero="scroll">
+    <span class="text-xs font-black text-black/40 tracking-widest uppercase">Scroll</span>
+    <div class="w-[2px] h-10 bg-black/30 origin-top animate-scroll-line"></div>
+  </div>
+</section>
+
+<style>
+  @keyframes scroll-line {
+    0% { transform: scaleY(0); opacity: 0; }
+    50% { transform: scaleY(1); opacity: 1; }
+    100% { transform: scaleY(0); opacity: 0; }
+  }
+  .animate-scroll-line {
+    animation: scroll-line 2s ease-in-out infinite;
+  }
+</style>

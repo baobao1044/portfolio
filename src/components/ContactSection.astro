@@ -1,0 +1,51 @@
+---
+interface Props {
+  data?: Record<string, unknown>;
+}
+
+const { data = {} } = Astro.props as Props;
+
+const asText = (value: unknown): string | null =>
+  typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+
+const title = asText(data.title) ?? "Contact";
+const intro = asText(data.intro) ?? "Lets talk.";
+const email = asText(data.email) ?? "baobgg1@gmail.com";
+const ctaLabel = asText(data.ctaLabel) ?? "Email BaoBG";
+const ctaHref = asText(data.ctaHref) ?? "mailto:baobgg1@gmail.com";
+const links = Array.isArray(data.links) ? (data.links as Record<string, unknown>[]) : [];
+---
+
+<section id="contact" class="relative z-10 flex min-h-[60vh] flex-col items-center justify-center bg-[#ff0000] px-4 py-32 text-center" data-bg-color="#ff0000" aria-labelledby="contact-heading">
+
+  <div class="relative z-20 max-w-5xl" data-animate>
+    <h2 id="contact-heading" class="font-bebas text-[12vw] md:text-[8vw] text-black leading-[0.85] mb-8">
+      {title}
+    </h2>
+
+    <p class="text-lg font-black uppercase tracking-widest text-black/50 mb-16">
+      {intro}
+    </p>
+
+    <a
+      href={ctaHref}
+      id="magnetic-email"
+      data-cursor-text="CLICK"
+      class="font-bebas text-[10vw] md:text-[6vw] leading-none text-black tracking-tighter hover:bg-black hover:text-[#ff0000] transition-all duration-300 px-8 py-6 block"
+    >
+      {email}
+    </a>
+
+    <div class="mt-16 flex justify-center gap-6">
+      {links.map((link) => (
+        <a
+          href={asText(link.href) ?? "#"}
+          data-magnetic
+          class="link-lift btn-hover text-sm font-black uppercase tracking-widest text-black px-6 py-3 transition-colors duration-300 hover:bg-black hover:text-[#ff0000]" style="border: 3px solid black;"
+        >
+          {asText(link.label) ?? "Link"}
+        </a>
+      ))}
+    </div>
+  </div>
+</section>

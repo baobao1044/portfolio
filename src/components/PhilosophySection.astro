@@ -1,0 +1,76 @@
+---
+interface Props {
+  data?: Record<string, unknown>;
+}
+
+const { data = {} } = Astro.props as Props;
+
+const asText = (value: unknown): string | null =>
+  typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+
+const title = asText(data.title) ?? "Philosophy";
+const principles = Array.isArray(data.principles) ? (data.principles as Record<string, unknown>[]) : [];
+---
+
+<section
+  id="philosophy"
+  class="relative overflow-hidden bg-[#ff0000]"
+  aria-labelledby="philosophy-heading"
+  data-bg-color="#ff0000"
+>
+  <h2 id="philosophy-heading" class="sr-only">{title}</h2>
+
+  <!-- Title -->
+  <div class="container mx-auto px-6 pt-32 pb-12" data-animate>
+    <h2 class="font-bebas text-[12vw] md:text-[8vw] text-black leading-[0.85] glitch-text" data-text="PRINCIPLES">
+      PRINCIPLES
+    </h2>
+    <div class="h-[3px] w-full bg-black/20 mt-4"></div>
+  </div>
+
+  <!-- Horizontal scroll container -->
+  <div class="philosophy-scroll-wrap relative">
+    <div class="flex gap-12 px-6 pb-32 items-stretch" id="philosophy-track">
+      {principles.map((p, index) => (
+        <div class="flex-shrink-0 w-[85vw] md:w-[60vw] lg:w-[45vw] flex flex-col justify-center relative philosophy-card">
+          <!-- Big number -->
+          <span class="font-bebas text-[30vw] md:text-[18vw] leading-none text-black/5 absolute top-0 left-0 pointer-events-none select-none">
+            0{index + 1}
+          </span>
+
+          <div class="relative z-10">
+            <span class="font-mono text-black/40 text-sm tracking-widest font-bold block mb-4">
+              0{index + 1}
+            </span>
+
+            <!-- Stroke-to-fill title -->
+            <h3
+              class="font-bebas text-[12vw] md:text-[7vw] leading-[0.8] tracking-tighter mb-6 stroke-fill-text"
+              data-stroke-fill
+            >
+              {asText(p.title) ?? "Untitled"}
+            </h3>
+
+            <p class="font-inter text-black/60 font-bold text-lg md:text-xl max-w-lg uppercase tracking-widest">
+              {asText(p.description) ?? ""}
+            </p>
+
+            <div class="w-24 h-[3px] bg-black/20 mt-8"></div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .stroke-fill-text {
+    color: transparent;
+    -webkit-text-stroke: 2px #000000;
+    transition: color 0.6s ease, -webkit-text-stroke 0.6s ease;
+  }
+  .stroke-fill-text.filled {
+    color: #000000;
+    -webkit-text-stroke: 0px #000000;
+  }
+</style>

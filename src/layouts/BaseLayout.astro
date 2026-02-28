@@ -1,0 +1,295 @@
+---
+import "../styles/global.css";
+import CustomCursor from "../components/ui/CustomCursor.astro";
+import ParticlesBg from "../components/ui/ParticlesBg.astro";
+import * as portfolioData from "../data/portfolio";
+
+interface NavItem {
+  label: string;
+  href: string;
+}
+
+interface Props {
+  title?: string;
+  description?: string;
+  navItems?: NavItem[];
+}
+
+const { title = "Portfolio", description = "Personal portfolio site.", navItems = [] } =
+  Astro.props as Props;
+
+const data = portfolioData as any;
+const resolvedNavItems = navItems.length > 0 ? navItems : (data.navItems || []);
+---
+
+<!doctype html>
+<html lang="en" class="h-full scroll-smooth antialiased">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@100;300;400;700&display=swap" rel="stylesheet">
+    <title>{title}</title>
+  </head>
+  <body class="relative flex min-h-full flex-col overflow-x-hidden font-inter bg-[#ff0000]">
+
+    <!-- Page enter overlay -->
+    <div class="page-overlay" id="page-overlay"></div>
+
+    <div class="vignette"></div>
+    <div class="noise-overlay"></div>
+
+    <ParticlesBg />
+
+    <div class="fixed top-0 left-0 h-[3px] w-full z-50 bg-black origin-left scale-x-0 transition-transform duration-100 ease-linear" id="progress-bar"></div>
+
+    <CustomCursor />
+
+    <header class="fixed top-0 z-40 w-full px-6 py-8" id="main-header">
+      <nav class="mx-auto flex max-w-[1400px] items-center justify-between">
+        <a href="/" data-magnetic class="text-5xl font-bebas text-black hover:text-white transition-colors duration-300" data-cursor="hover">
+          BAOBG
+        </a>
+        <ul class="hidden md:flex gap-10 text-xs font-black uppercase tracking-[0.3em] text-black/50">
+          {resolvedNavItems.map((item: any) => (
+            <li>
+              <a href={item.href} class="nav-link hover:text-black transition-colors duration-300" data-cursor="hover">
+                {item.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </header>
+
+    <main class="flex-grow relative z-10">
+      <slot />
+    </main>
+
+    <footer class="bg-black py-16 text-center text-xs font-mono text-[#ff0000]/60 relative z-20">
+      <p class="uppercase tracking-[0.5em]">&copy; {new Date().getFullYear()} BAO BG</p>
+    </footer>
+
+    <script>
+      import Lenis from 'lenis'
+      import { gsap } from 'gsap'
+      import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+      gsap.registerPlugin(ScrollTrigger)
+
+      // ── Lenis smooth scroll ──
+      const lenis = new Lenis({
+        duration: 1.5,
+        easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        orientation: 'vertical',
+        gestureOrientation: 'vertical',
+        smoothWheel: true,
+      })
+
+      function raf(time: number) {
+        lenis.raf(time)
+        requestAnimationFrame(raf)
+      }
+      requestAnimationFrame(raf)
+
+      lenis.on('scroll', ScrollTrigger.update)
+      gsap.ticker.add((time: number) => { lenis.raf(time * 1000) })
+      gsap.ticker.lagSmoothing(0)
+
+      // ── Page enter overlay ──
+      const overlay = document.getElementById('page-overlay')
+      if (overlay) {
+        gsap.to(overlay, {
+          yPercent: -100,
+          duration: 0.8,
+          ease: 'power3.inOut',
+          delay: 0.1,
+        })
+      }
+
+      // ── Hero entrance animation ──
+      const heroTl = gsap.timeline({ delay: 0.6 })
+      const heroEls = ['subtitle', 'title', 'desc', 'buttons', 'scroll'].map(
+        (key) => document.querySelector(`[data-hero="${key}"]`)
+      ).filter(Boolean) as Element[]
+
+      if (heroEls.length > 0) {
+        gsap.set(heroEls, { opacity: 0, y: 40 })
+        heroEls.forEach((el, i) => {
+          heroTl.to(el, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }, i * 0.15)
+        })
+      }
+
+      // ── Progress bar ──
+      window.addEventListener('scroll', () => {
+        const winScroll = document.body.scrollTop || document.documentElement.scrollTop
+        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight
+        const scrolled = (winScroll / height) * 100
+        const bar = document.getElementById('progress-bar')
+        if (bar) bar.style.transform = `scaleX(${scrolled / 100})`
+      })
+
+      // ── Scroll-triggered fade-in with stagger ──
+      const sections = document.querySelectorAll('section')
+      sections.forEach((section) => {
+        const items = section.querySelectorAll('[data-animate]')
+        if (items.length === 0) return
+
+        items.forEach((el, i) => {
+          gsap.fromTo(el,
+            { y: 50, opacity: 0 },
+            {
+              y: 0,
+              opacity: 1,
+              duration: 1,
+              ease: 'power3.out',
+              delay: i * 0.15,
+              scrollTrigger: {
+                trigger: el,
+                start: 'top 90%',
+              }
+            }
+          )
+        })
+      })
+
+      // ── Parallax elements ──
+      const parallaxEls = document.querySelectorAll('[data-parallax]')
+      parallaxEls.forEach((el) => {
+        const speed = parseFloat((el as HTMLElement).dataset.parallax || '0.5')
+        gsap.to(el, {
+          yPercent: speed * 100,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: el.closest('section') || el,
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: true,
+          }
+        })
+      })
+
+      // ── Reveal boxes ──
+      const revealElements = document.querySelectorAll('[data-reveal]')
+      revealElements.forEach((el) => {
+        ScrollTrigger.create({
+          trigger: el,
+          start: 'top 90%',
+          onEnter: () => el.classList.add('active'),
+          once: true
+        })
+      })
+
+      // ── Magnetic elements ──
+      const magneticEls = document.querySelectorAll('[data-magnetic]')
+      magneticEls.forEach((el) => {
+        const strength = 0.3
+        const htmlEl = el as HTMLElement
+
+        htmlEl.addEventListener('mousemove', (e: MouseEvent) => {
+          const rect = htmlEl.getBoundingClientRect()
+          const x = e.clientX - rect.left - rect.width / 2
+          const y = e.clientY - rect.top - rect.height / 2
+
+          gsap.to(htmlEl, {
+            x: x * strength,
+            y: y * strength,
+            duration: 0.4,
+            ease: 'power2.out'
+          })
+        })
+
+        htmlEl.addEventListener('mouseleave', () => {
+          gsap.to(htmlEl, {
+            x: 0,
+            y: 0,
+            duration: 0.6,
+            ease: 'elastic.out(1, 0.5)'
+          })
+        })
+      })
+
+      // ── Magnetic email (legacy support) ──
+      const magneticEmail = document.getElementById('magnetic-email')
+      if (magneticEmail && !magneticEmail.hasAttribute('data-magnetic')) {
+        const strength = 0.3
+        magneticEmail.addEventListener('mousemove', (e: MouseEvent) => {
+          const rect = magneticEmail.getBoundingClientRect()
+          const x = e.clientX - rect.left - rect.width / 2
+          const y = e.clientY - rect.top - rect.height / 2
+          gsap.to(magneticEmail, { x: x * strength, y: y * strength, duration: 0.4, ease: 'power2.out' })
+        })
+        magneticEmail.addEventListener('mouseleave', () => {
+          gsap.to(magneticEmail, { x: 0, y: 0, duration: 0.6, ease: 'elastic.out(1, 0.5)' })
+        })
+      }
+
+      // ── Horizontal scroll for projects ──
+      const projectsTrack = document.getElementById('projects-track')
+      const projectsSection = document.getElementById('projects')
+      if (projectsTrack && projectsSection) {
+        const totalScrollWidth = projectsTrack.scrollWidth - window.innerWidth + 100
+
+        gsap.to(projectsTrack, {
+          x: -totalScrollWidth,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: projectsSection,
+            start: 'top top',
+            end: () => `+=${totalScrollWidth}`,
+            scrub: 1,
+            pin: true,
+            anticipatePin: 1,
+          }
+        })
+      }
+
+      // ── Smooth section color morph (body bg) ──
+      const colorSections = document.querySelectorAll('[data-bg-color]')
+      colorSections.forEach((section) => {
+        const color = (section as HTMLElement).dataset.bgColor || '#ff0000'
+        ScrollTrigger.create({
+          trigger: section,
+          start: 'top 60%',
+          end: 'bottom 40%',
+          onEnter: () => gsap.to('body', { backgroundColor: color, duration: 0.8, ease: 'power2.inOut' }),
+          onEnterBack: () => gsap.to('body', { backgroundColor: color, duration: 0.8, ease: 'power2.inOut' }),
+        })
+      })
+
+      // ── Horizontal scroll for philosophy ──
+      const philosophyTrack = document.getElementById('philosophy-track')
+      const philosophySection = document.getElementById('philosophy')
+      if (philosophyTrack && philosophySection) {
+        const totalPhiloWidth = philosophyTrack.scrollWidth - window.innerWidth + 100
+
+        gsap.to(philosophyTrack, {
+          x: -totalPhiloWidth,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: philosophySection,
+            start: 'top top',
+            end: () => `+=${totalPhiloWidth}`,
+            scrub: 1,
+            pin: true,
+            anticipatePin: 1,
+          }
+        })
+      }
+
+      // ── Stroke-to-fill text on scroll ──
+      const strokeFillEls = document.querySelectorAll('[data-stroke-fill]')
+      strokeFillEls.forEach((el) => {
+        ScrollTrigger.create({
+          trigger: el,
+          start: 'top 75%',
+          onEnter: () => el.classList.add('filled'),
+          onLeaveBack: () => el.classList.remove('filled'),
+        })
+      })
+    </script>
+  </body>
+</html>

@@ -1,0 +1,49 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import HeroSection from "../components/HeroSection.astro";
+import AboutSection from "../components/AboutSection.astro";
+import ProjectsSection from "../components/ProjectsSection.astro";
+import PhilosophySection from "../components/PhilosophySection.astro";
+import ProofSection from "../components/ProofSection.astro";
+import ContactSection from "../components/ContactSection.astro";
+import * as portfolioData from "../data/portfolio";
+
+type Dict = Record<string, unknown>;
+type NavItem = { label: string; href: string };
+
+const data = portfolioData as Dict;
+
+const site = ((data.site as Dict | undefined) ?? {}) as Dict;
+const hero = ((data.hero as Dict | undefined) ?? {}) as Dict;
+const about = ((data.about as Dict | undefined) ?? {}) as Dict;
+const projectsSection = ((data.projectsSection as Dict | undefined) ?? {}) as Dict;
+const philosophy = ((data.philosophy as Dict | undefined) ?? {}) as Dict;
+const proof = ((data.proof as Dict | undefined) ?? {}) as Dict;
+const contact = ((data.contact as Dict | undefined) ?? {}) as Dict;
+
+const projects = Array.isArray(data.projects) ? (data.projects as Dict[]) : [];
+
+const navItems = Array.isArray(data.navItems)
+  ? (data.navItems as Dict[])
+      .map((item) => ({
+        label: typeof item.label === "string" ? item.label : "",
+        href: typeof item.href === "string" ? item.href : ""
+      }))
+      .filter((item): item is NavItem => Boolean(item.label && item.href))
+  : [];
+
+const title = typeof site.title === "string" ? site.title : "Portfolio";
+const description =
+  typeof site.description === "string"
+    ? site.description
+    : "Selected work, principles, and contact details.";
+---
+
+<BaseLayout title={title} description={description} navItems={navItems}>
+  <HeroSection data={hero} />
+  <AboutSection data={about} />
+  <ProjectsSection data={projectsSection} projects={projects} />
+  <PhilosophySection data={philosophy} />
+  <ProofSection data={proof} />
+  <ContactSection data={contact} />
+</BaseLayout>

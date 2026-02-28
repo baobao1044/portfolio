@@ -1,0 +1,104 @@
+<div id="cursor-container" class="fixed top-0 left-0 w-full h-full pointer-events-none z-[10000]">
+  <!-- Outer Ring -->
+  <div id="cursor-outer" class="absolute h-12 w-12 -translate-x-1/2 -translate-y-1/2 border-2 border-white rounded-full mix-blend-difference flex items-center justify-center">
+    <span id="cursor-label" class="text-[10px] font-black uppercase text-white opacity-0 whitespace-nowrap"></span>
+  </div>
+
+  <!-- Inner Dot -->
+  <div id="cursor-inner" class="absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 bg-white rounded-full mix-blend-difference"></div>
+</div>
+
+<script>
+  import gsap from "gsap";
+
+  const outer = document.getElementById("cursor-outer");
+  const inner = document.getElementById("cursor-inner");
+  const label = document.getElementById("cursor-label");
+  const links = document.querySelectorAll("a, button, [data-cursor='hover']");
+  const cursorTextEls = document.querySelectorAll("[data-cursor-text]");
+
+  let mouseX = 0;
+  let mouseY = 0;
+  let scrollTimer: ReturnType<typeof setTimeout> | null = null;
+
+  if (outer && inner && label) {
+    // ── Mouse tracking ──
+    window.addEventListener("mousemove", (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+
+      gsap.set(inner, { x: mouseX, y: mouseY });
+      gsap.to(outer, {
+        x: mouseX,
+        y: mouseY,
+        duration: 0.15,
+        ease: "power2.out"
+      });
+    });
+
+    // ── Link hover: scale up outer, shrink inner ──
+    links.forEach((link) => {
+      if ((link as HTMLElement).dataset.cursorText) return; // handled separately
+
+      link.addEventListener("mouseenter", () => {
+        gsap.to(outer, { scale: 2, duration: 0.4, ease: "power2.out" });
+        gsap.to(inner, { scale: 0.5, duration: 0.4 });
+      });
+
+      link.addEventListener("mouseleave", () => {
+        gsap.to(outer, { scale: 1, duration: 0.4, ease: "power2.out" });
+        gsap.to(inner, { scale: 1, duration: 0.4 });
+      });
+    });
+
+    // ── Cursor text elements: show label inside ring ──
+    cursorTextEls.forEach((el) => {
+      el.addEventListener("mouseenter", () => {
+        const text = (el as HTMLElement).dataset.cursorText || "";
+        label.textContent = text;
+        gsap.to(outer, { scale: 3, duration: 0.4, ease: "power2.out" });
+        gsap.to(label, { opacity: 1, duration: 0.3 });
+        gsap.to(inner, { scale: 0, duration: 0.3 });
+      });
+
+      el.addEventListener("mouseleave", () => {
+        gsap.to(outer, { scale: 1, duration: 0.4, ease: "power2.out" });
+        gsap.to(label, { opacity: 0, duration: 0.2 });
+        gsap.to(inner, { scale: 1, duration: 0.3 });
+      });
+    });
+
+    // ── Click effect ──
+    window.addEventListener("mousedown", () => {
+      gsap.to(outer, { scale: 0.8, duration: 0.1 });
+      gsap.to(inner, { scale: 2, duration: 0.1 });
+    });
+    window.addEventListener("mouseup", () => {
+      gsap.to(outer, { scale: 1, duration: 0.3, ease: "elastic.out(1, 0.3)" });
+      gsap.to(inner, { scale: 1, duration: 0.3, ease: "elastic.out(1, 0.3)" });
+    });
+
+    // ── Scroll reaction: cursor shrinks while scrolling ──
+    window.addEventListener("scroll", () => {
+      gsap.to(outer, { scale: 0.5, duration: 0.2, overwrite: "auto" });
+      gsap.to(inner, { scale: 0.5, duration: 0.2, overwrite: "auto" });
+
+      if (scrollTimer) clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(() => {
+        gsap.to(outer, { scale: 1, duration: 0.6, ease: "elastic.out(1, 0.4)", overwrite: "auto" });
+        gsap.to(inner, { scale: 1, duration: 0.6, ease: "elastic.out(1, 0.4)", overwrite: "auto" });
+      }, 150);
+    });
+  }
+</script>
+
+<style>
+  #cursor-outer {
+    will-change: transform;
+    pointer-events: none;
+  }
+  #cursor-inner {
+    will-change: transform;
+    pointer-events: none;
+  }
+</style>

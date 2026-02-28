@@ -1,0 +1,61 @@
+---
+import { Image } from "astro:assets";
+import * as portfolioData from "../data/portfolio";
+
+const data = portfolioData as any;
+const projects = data.projects || [];
+---
+
+<section id="projects" class="bg-black relative overflow-hidden" data-bg-color="#000000">
+  <!-- Title -->
+  <div class="container mx-auto px-6 pt-32 pb-12" data-animate>
+    <h2 class="font-bebas text-[12vw] md:text-[8vw] text-[#ff0000] leading-[0.85] glitch-text" data-text="PROJECTS">
+      PROJECTS
+    </h2>
+    <div class="h-[3px] w-full bg-[#ff0000]/30 mt-4"></div>
+  </div>
+
+  <!-- Horizontal scroll container -->
+  <div class="projects-scroll-wrap relative">
+    <div class="projects-scroll-track flex gap-8 px-6 pb-32" id="projects-track">
+      {projects.map((project: any, index: number) => (
+        <div class="project-h-card flex-shrink-0 w-[85vw] md:w-[60vw] lg:w-[45vw] group" data-cursor-text="VIEW">
+          <!-- Image -->
+          <div class="relative overflow-hidden border-2 border-[#ff0000] mb-6">
+            <div class="aspect-[16/10] bg-black relative overflow-hidden">
+              <div class="project-img absolute inset-0 flex items-center justify-center text-[#ff0000]/20 font-bebas text-[8vw] md:text-[4vw]">
+                {project.title}
+              </div>
+              <div class="absolute inset-0 bg-[#ff0000]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </div>
+          </div>
+
+          <!-- Info -->
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <span class="font-mono text-[#ff0000]/40 text-sm tracking-widest font-bold block mb-2">
+                0{index + 1}
+              </span>
+              <h3 class="font-bebas text-5xl md:text-6xl text-[#ff0000] group-hover:text-white transition-colors duration-300 mb-3">
+                {project.title}
+              </h3>
+              <p class="font-inter text-white/50 font-bold text-sm leading-relaxed max-w-md mb-4">
+                {project.description}
+              </p>
+              <div class="flex gap-2 flex-wrap">
+                {project.tags && project.tags.map((tag: string) => (
+                  <span class="px-3 py-1 bg-[#ff0000] text-black text-[10px] font-black uppercase">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <a href={project.link} data-magnetic class="link-lift text-[#ff0000] font-black text-sm uppercase tracking-wider hover:text-white transition-colors duration-300 whitespace-nowrap mt-8">
+              View &rarr;
+            </a>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
