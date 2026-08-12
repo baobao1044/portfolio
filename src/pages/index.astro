@@ -1,0 +1,29 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import HeroSection from "../components/HeroSection.astro";
+import AboutSection from "../components/AboutSection.astro";
+import ProjectsSection from "../components/ProjectsSection.astro";
+import PhilosophySection from "../components/PhilosophySection.astro";
+import ProofSection from "../components/ProofSection.astro";
+import ContactSection from "../components/ContactSection.astro";
+import {
+  site,
+  navItems,
+  hero,
+  about,
+  projectsSection,
+  projects,
+  philosophy,
+  proof,
+  contact,
+} from "../data/portfolio";
+---
+
+<BaseLayout title={site.title} description={site.description} navItems={navItems}>
+  <HeroSection data={hero} />
+  <AboutSection data={about} />
+  <ProjectsSection data={projectsSection} projects={projects} />
+  <PhilosophySection data={philosophy} />
+  <ProofSection data={proof} />
+  <ContactSection data={contact} />
+</BaseLayout>

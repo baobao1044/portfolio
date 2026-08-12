@@ -1,0 +1,174 @@
+---
+// GuidePath — a hand-drawn SVG "guide" that accompanies the user from top to
+// bottom of the page. It renders a long vertical wandering line with section
+// nodes + mini annotations ("// start", "// trace", ...). The main path is
+// drawn progressively as the user scrolls (stroke-dashoffset tied to scroll
+// progress by BaseLayout), giving the feel of "someone leading you through".
+//
+// Fixed full-height SVG on the left edge (desktop), hidden on mobile.
+//
+// Architecture notes:
+//  - The SVG uses viewBox="0 0 60 1000" + preserveAspectRatio="none" so the
+//    path spans the full, variable viewport height. Geometric strokes are
+//    kept crisp with vector-effect="non-scaling-stroke" so non-uniform
+//    scaling never blurs/thickens line weights.
+//  - The six section NODES are SVG circles placed at slightly irregular
+//    (organic) y-positions so the line reads hand-drawn rather than
+//    mechanical. Node Y is purely decorative: BaseLayout computes the
+//    "current" section by measuring real section tops, then lights the
+//    matching node/annotation — so the guide "remembers where you are"
+//    regardless of where the node sits visually.
+//  - The "// label" ANNOTATIONS are rendered as absolutely-positioned HTML
+//    <span>s OUTSIDE the stretched SVG so the text is never distorted by
+//    preserveAspectRatio="none". They keep class="guide-anno" + data-anno so
+//    BaseLayout's active-node logic still toggles .active on them.
+//  - The main path is a smooth cubic chain (C + alternating S commands) that
+//    passes exactly THROUGH every node at x=30, with gentle alternating
+//    left/right bulges between nodes. A thin echo path runs ~2px to the
+//    right as a hand-drawn double-line shadow.
+---
+
+<div class="guide-path-wrap" id="guide-path" aria-hidden="true">
+  <svg
+    class="guide-svg"
+    viewBox="0 0 60 1000"
+    preserveAspectRatio="none"
+    fill="none"
+    stroke="currentColor"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <!-- Main wandering guide line: smooth cubic chain through every node (x=30). -->
+    <path
+      id="guide-main-path"
+      class="guide-path-stroke"
+      d="M 30 30 C 38 38, 38 42, 30 50 S 18 175, 30 215 S 42 355, 30 395 S 18 545, 30 590 S 42 755, 30 805 S 18 920, 30 955 C 36 962, 32 972, 30 978"
+      stroke-width="1.2"
+      vector-effect="non-scaling-stroke"
+    />
+    <!-- Echo line: same geometry offset +2px on x, thinner + fainter. -->
+    <path
+      class="guide-path-echo"
+      d="M 32 30 C 40 38, 40 42, 32 50 S 20 175, 32 215 S 44 355, 32 395 S 20 545, 32 590 S 44 755, 32 805 S 20 920, 32 955 C 38 962, 34 972, 32 978"
+      stroke-width="0.6"
+      opacity="0.45"
+      vector-effect="non-scaling-stroke"
+    />
+
+    <!-- Section nodes: ring (fades/scales in on active) behind the dot. -->
+    <g class="guide-node-pair" data-node="hero">
+      <circle class="guide-node-ring" cx="30" cy="50" r="5" />
+      <circle class="guide-node" cx="30" cy="50" r="4" data-node="hero" />
+    </g>
+    <g class="guide-node-pair" data-node="about">
+      <circle class="guide-node-ring" cx="30" cy="215" r="5" />
+      <circle class="guide-node" cx="30" cy="215" r="4" data-node="about" />
+    </g>
+    <g class="guide-node-pair" data-node="projects">
+      <circle class="guide-node-ring" cx="30" cy="395" r="5" />
+      <circle class="guide-node" cx="30" cy="395" r="4" data-node="projects" />
+    </g>
+    <g class="guide-node-pair" data-node="philosophy">
+      <circle class="guide-node-ring" cx="30" cy="590" r="5" />
+      <circle class="guide-node" cx="30" cy="590" r="4" data-node="philosophy" />
+    </g>
+    <g class="guide-node-pair" data-node="proof">
+      <circle class="guide-node-ring" cx="30" cy="805" r="5" />
+      <circle class="guide-node" cx="30" cy="805" r="4" data-node="proof" />
+    </g>
+    <g class="guide-node-pair" data-node="contact">
+      <circle class="guide-node-ring" cx="30" cy="955" r="5" />
+      <circle class="guide-node" cx="30" cy="955" r="4" data-node="contact" />
+    </g>
+  </svg>
+
+  <!-- HTML annotation overlay: crisp text (not distorted by preserveAspectRatio). -->
+  <!-- top:% matches each node's y/1000 so the label vertically centers on its node. -->
+  <span class="guide-anno" data-anno="hero" style="top: 5%">// start</span>
+  <span class="guide-anno" data-anno="about" style="top: 21.5%">// trace</span>
+  <span class="guide-anno" data-anno="projects" style="top: 39.5%">// work</span>
+  <span class="guide-anno" data-anno="philosophy" style="top: 59%">// rules</span>
+  <span class="guide-anno" data-anno="proof" style="top: 80.5%">// logs</span>
+  <span class="guide-anno" data-anno="contact" style="top: 95.5%">// signal</span>
+</div>
+
+<style>
+  .guide-path-wrap {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 60px;
+    height: 100vh;
+    z-index: 30;
+    pointer-events: none;
+    /* Tuned from 0.42 -> 0.5 so the line reads against the busy amber-on-ink shader. */
+    color: rgba(245, 158, 11, 0.5);
+    overflow: visible;
+  }
+  .guide-svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  /* ── Nodes ── */
+  .guide-node {
+    fill: rgba(7, 7, 10, 0.92);
+    stroke: currentColor;
+    stroke-width: 1.4;
+    transition: fill 0.4s ease, stroke 0.4s ease, r 0.4s ease;
+  }
+  .guide-node.active {
+    fill: #f59e0b;
+    stroke: #f59e0b;
+    r: 5;
+  }
+  /* Halo ring: sits behind the dot, fades + grows in on active. */
+  .guide-node-ring {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1;
+    opacity: 0;
+    r: 5;
+    transition: opacity 0.45s ease, r 0.45s ease;
+  }
+  .guide-node-pair:has(.guide-node.active) .guide-node-ring {
+    opacity: 0.5;
+    r: 8;
+  }
+
+  /* ── HTML annotation labels (crisp, not SVG-stretched) ── */
+  .guide-anno {
+    position: absolute;
+    left: 36px;
+    transform: translateY(-50%);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9px;
+    line-height: 1;
+    letter-spacing: 0.06em;
+    color: currentColor;
+    white-space: nowrap;
+    opacity: 0.22;
+    transition: opacity 0.4s ease, color 0.4s ease;
+  }
+  /* Small branch tick connecting the label to the guide line at x=30. */
+  .guide-anno::before {
+    content: "";
+    position: absolute;
+    left: -6px;
+    top: 50%;
+    width: 4px;
+    height: 1px;
+    background: currentColor;
+  }
+  .guide-anno.active {
+    opacity: 1;
+    color: #f59e0b;
+  }
+
+  @media (max-width: 1023px) {
+    .guide-path-wrap {
+      display: none;
+    }
+  }
+</style>

@@ -1,0 +1,70 @@
+---
+// DoodleLayer — renders hand-drawn / tech doodle SVGs for ONE section.
+// Place <DoodleLayer section="hero" /> inside each <section>. Doodles are
+// position:absolute within the (relative) section. They animate in
+// (stroke draw + float) via BaseLayout's IntersectionObserver logic.
+
+import { doodles, type Doodle } from "../../data/doodles";
+
+interface Props {
+  section: Doodle["section"];
+}
+
+const { section } = Astro.props as Props;
+const sectionDoodles = doodles.filter((d) => d.section === section);
+
+const posClass: Record<string, string> = {
+  tl: "top-8 left-4 md:top-16 md:left-16",
+  tr: "top-8 right-4 md:top-16 md:right-16",
+  bl: "bottom-8 left-4 md:bottom-20 md:left-16",
+  br: "bottom-8 right-4 md:bottom-20 md:right-16",
+  center: "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
+  side: "top-1/2 left-2 md:left-4 -translate-y-1/2",
+};
+---
+
+{
+  sectionDoodles.map((d) => (
+    <div
+      class={`doodle-wrap pointer-events-none absolute ${posClass[d.position] ?? "tl"} opacity-0`}
+      data-doodle={d.id}
+      data-draw-strokes={d.draw ? "true" : undefined}
+      data-float={d.float ?? undefined}
+      aria-hidden="true"
+    >
+      <svg
+        viewBox="0 0 80 80"
+        class="doodle-svg w-16 h-16 md:w-24 md:h-24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        set:html={d.svg}
+      />
+    </div>
+  ))
+}
+
+<style>
+  .doodle-wrap {
+    color: rgba(245, 158, 11, 0.26);
+    will-change: transform, opacity;
+    /* Decorative only — sit behind content. Section content sits at z-auto/auto;
+       keep doodles low so headings/cards always read above. */
+    z-index: 0;
+  }
+  .doodle-svg {
+    overflow: visible;
+  }
+  /* hide the smallest decorative doodles on mobile to keep content clear */
+  @media (max-width: 767px) {
+    .doodle-wrap[data-doodle] {
+      opacity: 0.18 !important;
+    }
+    .doodle-svg {
+      width: 3.5rem;
+      height: 3.5rem;
+    }
+  }
+</style>

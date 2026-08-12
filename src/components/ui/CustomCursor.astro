@@ -1,0 +1,120 @@
+---
+// CustomCursor — anime.js v4 rewrite. Hidden on touch / coarse-pointer devices.
+---
+
+<div id="cursor-container" class="cursor-container fixed top-0 left-0 w-full h-full pointer-events-none z-[10000]">
+  <div
+    id="cursor-outer"
+    class="cursor-outer absolute h-10 w-10 -translate-x-1/2 -translate-y-1/2 border border-accent rounded-full flex items-center justify-center"
+  >
+    <span id="cursor-label" class="font-mono text-[9px] uppercase tracking-[0.15em] text-accent opacity-0 whitespace-nowrap"></span>
+  </div>
+  <div id="cursor-inner" class="cursor-inner absolute h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 bg-accent rounded-full"></div>
+</div>
+
+<script>
+  import { animate, utils, ease } from "../../lib/anime";
+
+  const outer = document.getElementById("cursor-outer");
+  const inner = document.getElementById("cursor-inner");
+  const label = document.getElementById("cursor-label");
+  const container = document.getElementById("cursor-container");
+
+  // Hide on touch / coarse pointers
+  if (window.matchMedia("(pointer: coarse)").matches && container) {
+    container.style.display = "none";
+  }
+
+  if (outer && inner && label) {
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    let scrollTimer: ReturnType<typeof setTimeout> | null = null;
+
+    // Track mouse; inner follows instantly, outer eases (spring-y)
+    window.addEventListener("mousemove", (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      utils.set(inner, { x: mouseX, y: mouseY });
+      animate(outer, {
+        x: mouseX,
+        y: mouseY,
+        duration: 180,
+        ease: ease.outQuart,
+      });
+    });
+
+    const links = document.querySelectorAll("a, button, [data-cursor='hover']");
+    const cursorTextEls = document.querySelectorAll("[data-cursor-text]");
+
+    // Hover: scale ring up, shrink dot
+    links.forEach((link) => {
+      if ((link as HTMLElement).dataset.cursorText) return;
+      link.addEventListener("mouseenter", () => {
+        animate(outer, { scale: 1.8, duration: 350, ease: ease.outQuart });
+        animate(inner, { scale: 0.5, duration: 350, ease: ease.outQuart });
+      });
+      link.addEventListener("mouseleave", () => {
+        animate(outer, { scale: 1, duration: 500, ease: ease.spring });
+        animate(inner, { scale: 1, duration: 500, ease: ease.spring });
+      });
+    });
+
+    // Cursor-text: show label inside enlarged ring
+    cursorTextEls.forEach((el) => {
+      el.addEventListener("mouseenter", () => {
+        const text = (el as HTMLElement).dataset.cursorText || "";
+        label.textContent = text;
+        animate(outer, { scale: 2.8, duration: 350, ease: ease.outQuart });
+        animate(label, { opacity: 1, duration: 250 });
+        animate(inner, { scale: 0, duration: 250 });
+      });
+      el.addEventListener("mouseleave", () => {
+        animate(outer, { scale: 1, duration: 500, ease: ease.spring });
+        animate(label, { opacity: 0, duration: 200 });
+        animate(inner, { scale: 1, duration: 400, ease: ease.spring });
+      });
+    });
+
+    // Click: squish + elastic bounce back
+    window.addEventListener("mousedown", () => {
+      animate(outer, { scale: 0.8, duration: 100 });
+      animate(inner, { scale: 2, duration: 100 });
+    });
+    window.addEventListener("mouseup", () => {
+      animate(outer, { scale: 1, duration: 400, ease: ease.spring });
+      animate(inner, { scale: 1, duration: 400, ease: ease.spring });
+    });
+
+    // Scroll: shrink while scrolling, spring back after stop
+    window.addEventListener("scroll", () => {
+      animate(outer, { scale: 0.5, duration: 200 });
+      animate(inner, { scale: 0.5, duration: 200 });
+      if (scrollTimer) clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(() => {
+        animate(outer, { scale: 1, duration: 600, ease: ease.spring });
+        animate(inner, { scale: 1, duration: 600, ease: ease.spring });
+      }, 150);
+    });
+
+    // Hide when mouse leaves window
+    document.addEventListener("mouseleave", () => {
+      animate(outer, { opacity: 0, duration: 200 });
+      animate(inner, { opacity: 0, duration: 200 });
+    });
+    document.addEventListener("mouseenter", () => {
+      animate(outer, { opacity: 1, duration: 200 });
+      animate(inner, { opacity: 1, duration: 200 });
+    });
+  }
+</script>
+
+<style>
+  #cursor-outer {
+    will-change: transform, opacity;
+    pointer-events: none;
+  }
+  #cursor-inner {
+    will-change: transform, opacity;
+    pointer-events: none;
+  }
+</style>

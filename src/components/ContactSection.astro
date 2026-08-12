@@ -1,0 +1,68 @@
+---
+import type { Contact } from "../data/portfolio";
+import DoodleLayer from "./ui/DoodleLayer.astro";
+
+interface Props {
+  data: Contact;
+}
+
+const { data } = Astro.props as Props;
+---
+
+<section
+  id="contact"
+  class="relative z-10 flex min-h-[80vh] flex-col items-center justify-center bg-ink px-6 py-32 text-center"
+  data-bg-color="#07070a"
+  aria-labelledby="contact-heading"
+>
+  <DoodleLayer section="contact" />
+  <div class="relative z-20 max-w-5xl">
+    <div class="flex items-center justify-center gap-4 mb-8" data-animate>
+      <span class="mono-label-accent">// {data.title}</span>
+    </div>
+
+    <h2
+      id="contact-heading"
+      class="font-sans text-5xl md:text-7xl font-black text-ash leading-[0.95] tracking-tight mb-8"
+      data-animate
+    >
+      {data.title}
+    </h2>
+
+    <p class="font-sans text-base md:text-lg text-smoke max-w-xl mx-auto mb-16" data-animate>
+      {data.intro}
+    </p>
+
+    <a
+      href={`mailto:${data.email}`}
+      data-magnetic
+      data-cursor-text="CLICK"
+      class="inline-block font-sans text-2xl md:text-4xl font-bold text-ash hover:text-accent transition-colors duration-300 tracking-tight break-all"
+      data-animate
+    >
+      {data.email}
+    </a>
+
+    <div class="mt-16 flex justify-center flex-wrap gap-4">
+      {
+        data.links.map((link) => (
+          <a
+            href={link.href}
+            target={link.href.startsWith("http") ? "_blank" : undefined}
+            rel="noopener noreferrer"
+            data-magnetic
+            class="link-lift btn-hover font-mono text-xs uppercase tracking-[0.2em] text-ash px-6 py-3 border border-inkLine"
+            data-cursor="hover"
+          >
+            {link.label}
+          </a>
+        ))
+      }
+    </div>
+  </div>
+
+  <!-- Amber accent line drawn on scroll -->
+  <svg class="absolute bottom-0 left-0 w-full h-px" viewBox="0 0 100 1" preserveAspectRatio="none">
+    <path d="M0 0.5 H100" stroke="#f59e0b" stroke-width="0.5" data-draw="true" />
+  </svg>
+</section>

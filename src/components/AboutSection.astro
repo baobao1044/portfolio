@@ -1,0 +1,78 @@
+---
+import type { About } from "../data/portfolio";
+import DoodleLayer from "./ui/DoodleLayer.astro";
+
+interface Props {
+  data: About;
+}
+
+const { data } = Astro.props as Props;
+---
+
+<section
+  id="about"
+  class="relative py-32 md:py-48 overflow-hidden bg-ink"
+  data-bg-color="#07070a"
+>
+  <DoodleLayer section="about" />
+  <div class="max-w-[1400px] mx-auto px-6">
+
+    <!-- Section label -->
+    <div class="flex items-center gap-4 mb-16" data-animate>
+      <span class="mono-label-accent">// {data.title}</span>
+      <div class="accent-line flex-1 max-w-[200px]"></div>
+    </div>
+
+    <div class="grid md:grid-cols-12 gap-10 md:gap-16 items-start">
+      <!-- Left: lead + paragraphs -->
+      <div class="md:col-span-7">
+        <h2
+          class="font-sans text-3xl md:text-5xl font-bold text-ash leading-tight tracking-tight mb-10"
+          data-animate
+        >
+          {data.lead}
+        </h2>
+
+        <div class="space-y-6 max-w-2xl">
+          {
+            data.paragraphs.map((p) => (
+              <p
+                class="font-sans text-base md:text-lg text-smoke leading-relaxed"
+                data-animate
+              >
+                {p}
+              </p>
+            ))
+          }
+        </div>
+      </div>
+
+      <!-- Right: highlights panel -->
+      <div class="md:col-span-5 md:sticky md:top-32">
+        <div class="glass p-8 md:p-10" data-animate>
+          <span class="mono-label block mb-6">// Focus areas</span>
+          <ul class="space-y-5">
+            {
+              data.highlights.map((h, i) => (
+                <li class="flex items-start gap-4 group">
+                  <span class="font-mono text-accent text-sm pt-1 tabular-nums">
+                    0{i + 1}
+                  </span>
+                  <span class="font-sans text-lg md:text-xl font-medium text-ash group-hover:text-accent transition-colors duration-300">
+                    {h}
+                  </span>
+                </li>
+              ))
+            }
+          </ul>
+
+          <div class="accent-line mt-8 opacity-50"></div>
+
+          <p class="mono-label mt-6">
+            <span class="text-accent">//</span> Rust · Python · Go · C++ · TypeScript
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

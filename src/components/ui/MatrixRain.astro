@@ -1,0 +1,77 @@
+---
+// MatrixRain — subtle vertical code rain in amber on ink.
+// Canvas 2D, low opacity, pauses when offscreen/hidden. Decorative only.
+---
+
+<canvas id="matrix-canvas" class="fixed inset-0 pointer-events-none z-[2] opacity-[0.18]"></canvas>
+
+<script>
+  const canvas = document.getElementById("matrix-canvas") as HTMLCanvasElement | null;
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (canvas && !reduced) {
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      canvas.style.display = "none";
+    } else {
+      const charset = "01アイウエカサタナハマヤラ<>{}[]/\\#=+01ABCDEF";
+      let fontSize = 14;
+      let columns = 0;
+      let drops: number[] = [];
+
+      function setup() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        canvas!.width = Math.floor(w * dpr);
+        canvas!.height = Math.floor(h * dpr);
+        canvas!.style.width = `${w}px`;
+        canvas!.style.height = `${h}px`;
+        ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+        columns = Math.floor(w / fontSize);
+        drops = Array.from({ length: columns }, () => Math.random() * -h);
+      }
+      setup();
+      window.addEventListener("resize", setup, { passive: true });
+
+      let visible = !document.hidden;
+      document.addEventListener("visibilitychange", () => {
+        visible = !document.hidden;
+        if (visible) requestAnimationFrame(draw);
+      });
+
+      let lastFrame = 0;
+      function draw(now: number) {
+        if (!visible) return;
+        // throttle to ~24fps — decorative, no need for 60
+        if (now - lastFrame < 42) {
+          requestAnimationFrame(draw);
+          return;
+        }
+        lastFrame = now;
+
+        // translucent ink wash creates trailing fade
+        ctx!.fillStyle = "rgba(7, 7, 10, 0.08)";
+        ctx!.fillRect(0, 0, window.innerWidth, window.innerHeight);
+        ctx!.font = `${fontSize}px "JetBrains Mono", monospace`;
+
+        for (let i = 0; i < drops.length; i++) {
+          const ch = charset[(Math.random() * charset.length) | 0];
+          const x = i * fontSize;
+          const y = drops[i];
+          // head brighter, trail dimmer — simple per-cell
+          ctx!.fillStyle = Math.random() > 0.975 ? "#fbbf24" : "rgba(245, 158, 11, 0.7)";
+          ctx!.fillText(ch, x, y);
+          drops[i] += fontSize;
+          if (drops[i] > window.innerHeight && Math.random() > 0.975) {
+            drops[i] = Math.random() * -200;
+          }
+        }
+        requestAnimationFrame(draw);
+      }
+      requestAnimationFrame(draw);
+    }
+  } else if (canvas) {
+    canvas.style.display = "none";
+  }
+</script>

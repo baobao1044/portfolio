@@ -1,0 +1,63 @@
+---
+import type { Proof } from "../data/portfolio";
+import DoodleLayer from "./ui/DoodleLayer.astro";
+
+interface Props {
+  data: Proof;
+}
+
+const { data } = Astro.props as Props;
+---
+
+<section
+  id="proof"
+  class="relative bg-ink py-32 md:py-48 px-6"
+  data-bg-color="#0e0e12"
+  aria-labelledby="proof-heading"
+>
+  <DoodleLayer section="proof" />
+  <div class="mx-auto w-full max-w-4xl relative z-10">
+    <div class="flex items-center gap-4 mb-6" data-animate>
+      <span class="mono-label-accent">// {data.title}</span>
+      <div class="accent-line flex-1 max-w-[200px]"></div>
+    </div>
+
+    <h2
+      id="proof-heading"
+      class="font-sans text-4xl md:text-6xl font-black text-ash tracking-tight mb-4"
+      data-animate
+    >
+      {data.title}
+    </h2>
+    <p class="font-sans text-base md:text-lg text-smoke mb-14 max-w-xl" data-animate>
+      {data.intro}
+    </p>
+
+    <ul class="space-y-0">
+      {
+        data.lines.map((line) => (
+          <li data-animate>
+            <a
+              href={line.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="flex items-center justify-between py-6 border-b border-inkLine transition-all duration-300 hover:border-accent hover:px-6 group"
+            >
+              <span class="font-mono text-base md:text-lg font-bold text-ash group-hover:text-accent transition-colors duration-300">
+                {line.left}
+              </span>
+              <span class="font-mono text-[11px] md:text-xs uppercase tracking-[0.2em] text-smoke group-hover:text-accent transition-colors duration-300 text-right">
+                {line.right}
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <!-- Amber accent line drawn on scroll -->
+    <svg class="mt-14 w-full h-px" viewBox="0 0 100 1" preserveAspectRatio="none" data-animate>
+      <path d="M0 0.5 H100" stroke="#f59e0b" stroke-width="0.5" data-draw="true" />
+    </svg>
+  </div>
+</section>

@@ -1,0 +1,119 @@
+---
+import type { Hero } from "../data/portfolio";
+import DoodleLayer from "./ui/DoodleLayer.astro";
+
+interface Props {
+  data: Hero;
+}
+
+const { data } = Astro.props as Props;
+
+const headline = `${data.headlineLineOne} ${data.headlineLineTwo}`;
+---
+
+<section
+  id="hero"
+  class="relative min-h-screen flex items-center justify-center overflow-hidden bg-ink"
+  data-bg-color="#07070a"
+>
+  <DoodleLayer section="hero" />
+  <!-- Giant parallax background text -->
+  <div
+    class="absolute inset-0 flex items-center justify-center select-none pointer-events-none z-0 overflow-hidden"
+    data-parallax="0.18"
+  >
+    <span class="font-mono text-[22vw] font-bold leading-none whitespace-nowrap text-inkSoft opacity-60">
+      BaoBG
+    </span>
+  </div>
+
+  <!-- Top eyebrow -->
+  <div class="absolute top-28 md:top-32 left-1/2 -translate-x-1/2 z-10">
+    <span class="mono-label-accent" data-hero="subtitle">{data.eyebrow}</span>
+  </div>
+
+  <div class="relative z-10 text-center px-6 max-w-5xl mx-auto pt-20">
+    <h1
+      class="font-sans font-black text-[14vw] md:text-[8.5vw] leading-[0.9] tracking-tightest text-ash overflow-hidden"
+      data-hero="title"
+    >
+      {headline}
+    </h1>
+
+    <p
+      class="font-sans text-base md:text-xl text-smoke max-w-2xl leading-relaxed mx-auto mt-8"
+      data-hero="desc"
+    >
+      {data.summary}
+    </p>
+
+    <div class="flex justify-center gap-4 mt-12" data-hero="buttons">
+      <a
+        href={data.ctaPrimary.href}
+        data-magnetic
+        class="btn-hover inline-flex items-center gap-2 px-8 py-3.5 bg-accent text-ink font-mono text-xs uppercase tracking-[0.2em] font-bold"
+        data-cursor="hover"
+      >
+        {data.ctaPrimary.label}
+      </a>
+      <a
+        href={data.ctaSecondary.href}
+        data-magnetic
+        class="btn-hover inline-flex items-center gap-2 px-8 py-3.5 border border-inkLine text-ash font-mono text-xs uppercase tracking-[0.2em] font-bold hover:border-accent hover:text-accent"
+        data-cursor="hover"
+      >
+        {data.ctaSecondary.label}
+      </a>
+    </div>
+
+    <!-- Stats row -->
+    <div class="flex justify-center gap-10 md:gap-16 mt-16" data-hero="stats">
+      {
+        data.stats.map((s) => (
+          <div class="text-center">
+            <div
+              class="font-sans text-4xl md:text-5xl font-bold text-accent tabular-nums"
+              data-count={s.value}
+            >
+              0
+            </div>
+            <div class="mono-label mt-2">{s.label}</div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+
+  <!-- Marquee strip (role tagline) -->
+  <div class="absolute bottom-20 left-0 w-full overflow-hidden z-10 pointer-events-none">
+    <div class="marquee-track">
+      <div class="marquee-content">
+        {
+          [0, 1].map(() => (
+            <span class="font-mono text-sm md:text-base text-mute tracking-[0.3em] uppercase px-6">
+              AI Engineer &bull; Systems Programmer &bull; Cloud Architect &bull; CPU-first AI &bull; No GPU &bull; Verification > Guessing &bull;
+            </span>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Scroll indicator -->
+  <div
+    class="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-20"
+    data-hero="scroll"
+  >
+    <span class="font-mono text-[10px] text-mute tracking-[0.3em] uppercase">Scroll</span>
+    <div class="w-px h-10 bg-inkLine animate-scroll-line"></div>
+  </div>
+
+  <!-- Amber accent line, drawn on load -->
+  <svg
+    class="absolute bottom-0 left-0 w-full h-px z-10"
+    viewBox="0 0 100 1"
+    preserveAspectRatio="none"
+  >
+    <path d="M0 0.5 H100" stroke="#f59e0b" stroke-width="0.5" data-draw="true" />
+  </svg>
+</section>

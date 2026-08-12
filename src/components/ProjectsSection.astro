@@ -1,0 +1,150 @@
+---
+import type { Project, ProjectsSection as ProjectsSectionData } from "../data/portfolio";
+import DoodleLayer from "./ui/DoodleLayer.astro";
+
+interface Props {
+  data: ProjectsSectionData;
+  projects: Project[];
+}
+
+const { data, projects } = Astro.props as Props;
+---
+
+<section
+  id="projects"
+  class="relative bg-ink overflow-hidden"
+  data-bg-color="#0e0e12"
+>
+  <DoodleLayer section="projects" />
+  <!-- Title block -->
+  <div class="max-w-[1400px] mx-auto px-6 pt-32 md:pt-48 pb-12" data-animate>
+    <div class="flex items-center gap-4 mb-6">
+      <span class="mono-label-accent">// {data.title}</span>
+    </div>
+    <h2
+      class="font-sans text-5xl md:text-7xl font-black text-ash leading-[0.95] tracking-tight"
+      data-split-text
+    >
+      {data.title}
+    </h2>
+    <p class="font-sans text-base md:text-lg text-smoke mt-6 max-w-xl">
+      {data.intro}
+    </p>
+    <div class="h-px w-full bg-inkLine mt-10"></div>
+  </div>
+
+  <!-- Horizontal scroll: pinned section with tall height so vertical scroll drives x translate.
+       On mobile (no JS pin) this becomes a horizontal overflow scroll. -->
+  <div
+    class="projects-scroll-wrap relative"
+    style="height: calc(100vw + 60vh);"
+  >
+    <div
+      class="sticky top-0 h-screen flex items-center overflow-hidden"
+    >
+      <div
+        class="flex gap-6 md:gap-8 px-6 will-change-transform"
+        id="projects-track"
+        style="transform: translate3d(0,0,0);"
+      >
+        {
+          projects.map((project, index) => (
+            <a
+              href={project.repo}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="project-h-card flex-shrink-0 w-[82vw] sm:w-[60vw] md:w-[42vw] lg:w-[34vw] group block border border-inkLine bg-inkSoft/40 p-6 md:p-8"
+              data-cursor-text="OPEN"
+            >
+              <!-- Card head: index + status + featured -->
+              <div class="flex items-center justify-between mb-6">
+                <span class="font-mono text-accent text-sm tabular-nums tracking-widest">
+                  0{index + 1}
+                </span>
+                <div class="flex items-center gap-2">
+                  {project.status === "archived" && (
+                    <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-mute border border-inkLine px-2 py-1">
+                      archived
+                    </span>
+                  )}
+                  {project.featured && (
+                    <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-accent border border-accent/40 px-2 py-1">
+                      featured
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <!-- Title block (replaces faux image) -->
+              <div class="relative mb-6 overflow-hidden">
+                <div class="font-sans text-4xl md:text-5xl font-bold text-ash leading-none group-hover:text-accent transition-colors duration-300">
+                  {project.title}
+                </div>
+                <div class="font-mono text-xs text-mute mt-2 tracking-[0.2em] uppercase">
+                  {project.languages.join(" · ")}
+                </div>
+              </div>
+
+              <!-- One-liner -->
+              <p class="font-sans text-sm md:text-base text-ash leading-relaxed mb-4 min-h-[3.5em]">
+                {project.oneLiner}
+              </p>
+
+              <!-- Description (truncated feel) -->
+              <p class="font-sans text-sm text-smoke leading-relaxed mb-6 line-clamp-3">
+                {project.description}
+              </p>
+
+              <!-- Tags -->
+              <div class="flex gap-2 flex-wrap mb-6">
+                {project.tags.map((tag) => (
+                  <span class="font-mono text-[10px] uppercase tracking-[0.15em] text-smoke border border-inkLine px-2.5 py-1">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+
+              {/* Stats + view link */}
+              {project.stats && project.stats.length > 0 && (
+                <div class="flex items-end justify-between border-t border-inkLine pt-5">
+                  <div class="flex gap-6">
+                    {project.stats.map((s) => (
+                      <div>
+                        <div
+                          class="font-sans text-2xl font-bold text-ash tabular-nums"
+                          data-count={s.value}
+                        >
+                          0
+                        </div>
+                        <div class="font-mono text-[10px] uppercase tracking-[0.2em] text-mute">
+                          {s.label}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <span
+                    class="font-mono text-xs uppercase tracking-[0.2em] text-accent group-hover:translate-x-1 transition-transform duration-300"
+                    data-magnetic
+                  >
+                    View &rarr;
+                  </span>
+                </div>
+              )}
+
+              {!project.stats && (
+                <div class="border-t border-inkLine pt-5">
+                  <span
+                    class="font-mono text-xs uppercase tracking-[0.2em] text-accent group-hover:translate-x-1 transition-transform duration-300"
+                    data-magnetic
+                  >
+                    View &rarr;
+                  </span>
+                </div>
+              )}
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>

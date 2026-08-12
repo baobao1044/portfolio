@@ -1,0 +1,82 @@
+---
+import type { Philosophy } from "../data/portfolio";
+import DoodleLayer from "./ui/DoodleLayer.astro";
+
+interface Props {
+  data: Philosophy;
+}
+
+const { data } = Astro.props as Props;
+---
+
+<section
+  id="philosophy"
+  class="relative overflow-hidden bg-ink"
+  aria-labelledby="philosophy-heading"
+  data-bg-color="#07070a"
+>
+  <DoodleLayer section="philosophy" />
+  <h2 id="philosophy-heading" class="sr-only">{data.title}</h2>
+
+  <!-- Title -->
+  <div class="max-w-[1400px] mx-auto px-6 pt-32 md:pt-48 pb-12" data-animate>
+    <div class="flex items-center gap-4 mb-6">
+      <span class="mono-label-accent">// {data.title}</span>
+    </div>
+    <h2
+      class="font-sans text-5xl md:text-7xl font-black text-ash leading-[0.95] tracking-tight"
+      data-split-text
+    >
+      {data.title}
+    </h2>
+    <p class="font-sans text-base md:text-lg text-smoke mt-6 max-w-xl">
+      {data.intro}
+    </p>
+    <div class="h-px w-full bg-inkLine mt-10"></div>
+  </div>
+
+  <!-- Horizontal scroll (pinned via sticky wrapper, same pattern as projects) -->
+  <div
+    class="philosophy-scroll-wrap relative"
+    style="height: calc(100vw + 40vh);"
+  >
+    <div class="sticky top-0 h-screen flex items-center overflow-hidden">
+      <div
+        class="flex gap-12 md:gap-16 px-6 will-change-transform"
+        id="philosophy-track"
+        style="transform: translate3d(0,0,0);"
+      >
+        {
+          data.principles.map((p, index) => (
+            <div class="flex-shrink-0 w-[82vw] sm:w-[60vw] md:w-[42vw] lg:w-[38vw] flex flex-col justify-center relative">
+              {/* Big ghost number */}
+              <span class="font-sans text-[28vw] md:text-[16vw] font-black leading-none text-inkSoft absolute top-0 left-0 pointer-events-none select-none">
+                0{index + 1}
+              </span>
+
+              <div class="relative z-10">
+                <span class="font-mono text-accent text-sm tracking-[0.3em] block mb-4">
+                  0{index + 1}
+                </span>
+
+                {/* Stroke-to-fill title */}
+                <h3
+                  class="font-sans text-[10vw] md:text-[6vw] font-black leading-[0.9] tracking-tight mb-6 stroke-fill-text"
+                  data-stroke-fill
+                >
+                  {p.title}
+                </h3>
+
+                <p class="font-sans text-lg md:text-xl text-smoke max-w-md leading-relaxed">
+                  {p.description}
+                </p>
+
+                <div class="accent-line w-24 mt-8 opacity-60"></div>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>

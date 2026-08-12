@@ -1,0 +1,538 @@
+---
+import "../styles/global.css";
+import CustomCursor from "../components/ui/CustomCursor.astro";
+import ShaderBg from "../components/ui/ShaderBg.astro";
+import MatrixRain from "../components/ui/MatrixRain.astro";
+import GuidePath from "../components/ui/GuidePath.astro";
+import * as portfolioData from "../data/portfolio";
+
+interface NavItem {
+  label: string;
+  href: string;
+}
+
+interface Props {
+  title?: string;
+  description?: string;
+  navItems?: NavItem[];
+}
+
+const {
+  title = portfolioData.site.title,
+  description = portfolioData.site.description,
+  navItems = portfolioData.navItems,
+} = Astro.props as Props;
+
+// `origin` is the configured deploy origin (https://baobao1044.github.io);
+// `base` is the repo-relative base path (/portfolio/). Together they keep
+// canonical, OG, sitemap, and favicon URLs correct under GitHub Pages
+// project pages — where the site is served from a sub-path, not the root.
+const base = import.meta.env.BASE_URL;
+const origin = Astro.site ?? new URL("https://baobao1044.github.io");
+const canonical = new URL(Astro.url.pathname, origin).href;
+const ogImage = new URL(`${base}favicon.svg`, origin).href;
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: portfolioData.site.author,
+  url: canonical,
+  email: `mailto:${portfolioData.contact.email}`,
+  jobTitle: portfolioData.site.role,
+  sameAs: [
+    "https://github.com/baobao1044",
+    ...portfolioData.contact.links
+      .map((l) => l.href)
+      .filter((h) => h.startsWith("http") && !h.includes("github.com")),
+  ],
+  description: portfolioData.site.description,
+};
+---
+
+<!doctype html>
+<html lang="en" class="h-full scroll-smooth antialiased">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="author" content={portfolioData.site.author} />
+    <meta name="theme-color" content="#07070a" />
+    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+    <link rel="canonical" href={canonical} />
+    <link rel="sitemap" href={`${base}sitemap-index.xml`} />
+
+    <!-- Open Graph / Twitter -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <title>{title}</title>
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  </head>
+  <body class="relative flex min-h-full flex-col overflow-x-hidden font-sans bg-ink text-ash">
+    <!-- Cinematic intro overlay -->
+    <div class="page-overlay" id="page-overlay">
+      <div class="absolute inset-0 flex flex-col items-center justify-center gap-6">
+        <span class="font-mono text-xs uppercase tracking-[0.4em] text-accent/70">
+          BaoBG
+        </span>
+        <div class="h-px w-40 origin-left bg-accent/40" id="intro-bar"></div>
+        <span class="font-mono text-[10px] uppercase tracking-[0.3em] text-smoke" id="intro-pct">0%</span>
+      </div>
+    </div>
+
+    <div class="grid-bg"></div>
+    <div class="vignette"></div>
+
+    <ShaderBg />
+    <MatrixRain />
+
+    <div
+      class="fixed top-0 left-0 h-[2px] w-full z-50 bg-accent origin-left scale-x-0"
+      id="progress-bar"
+    >
+    </div>
+
+    <CustomCursor />
+    <GuidePath />
+
+    <header class="fixed top-0 z-40 w-full px-6 py-6 md:py-8" id="main-header">
+      <nav class="mx-auto flex max-w-[1400px] items-center justify-between">
+        <a
+          href={base}
+          data-magnetic
+          class="font-mono text-base font-bold tracking-tight text-ash hover:text-accent transition-colors duration-300"
+          data-cursor="hover"
+        >
+          BaoBG<span class="text-accent">.</span>
+        </a>
+
+        <!-- Desktop nav -->
+        <ul class="hidden md:flex gap-8 text-[11px] font-mono uppercase tracking-[0.25em] text-smoke">
+          {navItems.map((item: NavItem) => (
+            <li>
+              <a
+                href={item.href}
+                class="nav-link hover:text-ash transition-colors duration-300"
+                data-cursor="hover"
+              >
+                {item.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+
+        <!-- Mobile menu button -->
+        <button
+          id="mobile-toggle"
+          aria-label="Toggle menu"
+          aria-expanded="false"
+          class="md:hidden flex flex-col gap-[5px] z-50 p-2"
+          data-cursor="hover"
+        >
+          <span class="block w-6 h-[2px] bg-ash transition-all duration-300" id="bar1"></span>
+          <span class="block w-6 h-[2px] bg-ash transition-all duration-300" id="bar2"></span>
+          <span class="block w-6 h-[2px] bg-ash transition-all duration-300" id="bar3"></span>
+        </button>
+      </nav>
+
+      <!-- Mobile slide-in panel -->
+      <div
+        id="mobile-panel"
+        class="md:hidden fixed inset-0 z-40 flex flex-col items-center justify-center gap-8 bg-ink/95 backdrop-blur-xl translate-x-full transition-transform duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] pointer-events-none"
+      >
+        {navItems.map((item: NavItem) => (
+          <a
+            href={item.href}
+            class="mobile-link font-sans text-3xl font-bold text-ash hover:text-accent transition-colors duration-300"
+            data-cursor="hover"
+          >
+            {item.label}
+          </a>
+        ))}
+      </div>
+    </header>
+
+    <main class="flex-grow relative z-10">
+      <slot />
+    </main>
+
+    <footer class="bg-ink border-t border-inkLine py-12 text-center relative z-20">
+      <p class="font-mono text-[11px] uppercase tracking-[0.4em] text-smoke">
+        <span class="text-accent">//</span> &copy; {new Date().getFullYear()} {portfolioData.site.author}
+      </p>
+      <p class="mt-3 font-mono text-[10px] uppercase tracking-[0.3em] text-mute">
+        Built with Astro + Anime.js
+      </p>
+    </footer>
+
+    <script>
+      import Lenis from "lenis";
+      import {
+        animate,
+        createTimeline,
+        stagger,
+        ease,
+        splitChars,
+        countUp,
+        magnetic,
+        revealOnScroll,
+        scrubParallax,
+        toggleOnScroll,
+        bgMorphOnScroll,
+        onGlobalScroll,
+        liveText,
+      } from "../lib/anime";
+
+      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const isTouch = window.matchMedia("(pointer: coarse)").matches;
+
+      // ── Lenis smooth scroll (single rAF loop, fixed dual-loop bug) ──
+      const lenis = new Lenis({
+        duration: 1.2,
+        easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        smoothWheel: true,
+        touchMultiplier: 2,
+      });
+      function raf(time: number) {
+        lenis.raf(time);
+        requestAnimationFrame(raf);
+      }
+      requestAnimationFrame(raf);
+
+      // ── Cinematic intro loader ──
+      const overlay = document.getElementById("page-overlay");
+      const introBar = document.getElementById("intro-bar");
+      const introPct = document.getElementById("intro-pct");
+      if (overlay) {
+        if (reduced) {
+          animate(overlay, { opacity: 0, duration: 200, onComplete: () => overlay.remove() });
+        } else {
+          // progress bar grows + percent counts to 100
+          if (introBar) animate(introBar, { scaleX: [0, 1], duration: 1200, ease: ease.outQuart });
+          if (introPct) {
+            const obj = { v: 0 };
+            animate(obj, {
+              v: 100,
+              duration: 1200,
+              ease: ease.outQuart,
+              onUpdate: () => (introPct.textContent = `${Math.round(obj.v)}%`),
+              onComplete: () => {
+                // sweep overlay up to reveal page
+                animate(overlay, {
+                  yPercent: -100,
+                  duration: 800,
+                  ease: ease.inOut3,
+                  delay: 100,
+                  onComplete: () => overlay.remove(),
+                });
+              },
+            });
+          } else {
+            animate(overlay, {
+              yPercent: -100,
+              duration: 800,
+              ease: ease.inOut3,
+              delay: 1200,
+              onComplete: () => overlay.remove(),
+            });
+          }
+        }
+      }
+
+      // ── Hero entrance (split-text stagger) ──
+      const heroEls = ["subtitle", "title", "desc", "buttons", "scroll"]
+        .map((k) => document.querySelector(`[data-hero="${k}"]`))
+        .filter(Boolean) as HTMLElement[];
+      if (heroEls.length > 0) {
+        // split the hero headline for per-char reveal
+        const heroTitle = document.querySelector<HTMLElement>('[data-hero="title"]');
+        let chars: HTMLElement[] = [];
+        if (heroTitle && !reduced) {
+          // wrap each text node char; preserve any existing spans
+          const text = heroTitle.textContent || "";
+          heroTitle.innerHTML = "";
+          const frag = document.createDocumentFragment();
+          for (const ch of text) {
+            const s = document.createElement("span");
+            s.className = "split-char";
+            s.style.display = "inline-block";
+            s.textContent = ch === " " ? "\u00A0" : ch;
+            frag.appendChild(s);
+          }
+          heroTitle.appendChild(frag);
+          chars = Array.from(heroTitle.querySelectorAll(".split-char"));
+        }
+
+        // initial hidden state
+        const nonTitle = heroEls.filter((e) => e.dataset.hero !== "title");
+        animate(nonTitle, { opacity: [0, 0], y: 40, duration: 0 });
+        if (chars.length) animate(chars, { opacity: 0, yPercent: 120, rotateZ: 8, duration: 0 });
+
+        const tl = createTimeline({ defaults: { ease: ease.outExpo } });
+        if (chars.length) {
+          tl.add(
+            animate(chars, {
+              opacity: [0, 1],
+              yPercent: [120, 0],
+              rotateZ: [8, 0],
+              duration: 900,
+              delay: stagger(28, { start: 700 }),
+            }),
+            700,
+          );
+        }
+        nonTitle.forEach((el, i) => {
+          tl.add(
+            animate(el, {
+              opacity: [0, 1],
+              y: [40, 0],
+              duration: 800,
+              delay: i * 120,
+            }),
+            chars.length ? 1200 + i * 120 : 700 + i * 120,
+          );
+        });
+
+        // ── Make hero headline "live": continuous float + mouse reaction ──
+        if (heroTitle && chars.length && !reduced) {
+          liveText(heroTitle, { amp: 4, speed: 1.1, mouseRadius: 180, mouseStrength: 16 });
+        }
+      }
+
+      // ── Progress bar (consolidated into the single global scroll loop) ──
+      const progressBar = document.getElementById("progress-bar");
+      onGlobalScroll(() => {
+        if (!progressBar) return;
+        const st = document.documentElement.scrollTop || document.body.scrollTop;
+        const h = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        progressBar.style.transform = `scaleX(${h > 0 ? st / h : 0})`;
+      });
+
+      // ── Scroll-triggered fade-up reveals ──
+      const revealEls = document.querySelectorAll<HTMLElement>("[data-animate]");
+      revealEls.forEach((el, i) => {
+        revealOnScroll(el, () => {
+          animate(el, {
+            opacity: [0, 1],
+            y: [48, 0],
+            duration: 900,
+            ease: ease.outExpo,
+            delay: (i % 4) * 80,
+          });
+        });
+      });
+
+      // ── Split-text reveal for section headings ──
+      const splitHeadings = document.querySelectorAll<HTMLElement>("[data-split-text]");
+      splitHeadings.forEach((el) => {
+        if (reduced) return;
+        revealOnScroll(el, () => {
+          const c = splitChars(el);
+          animate(c, {
+            opacity: [0, 1],
+            y: [40, 0],
+            duration: 700,
+            ease: ease.outExpo,
+            delay: stagger(20),
+          });
+        });
+      });
+
+      // ── Parallax (multi-layer) ──
+      const parallaxEls = document.querySelectorAll<HTMLElement>("[data-parallax]");
+      parallaxEls.forEach((el) => {
+        const speed = parseFloat(el.dataset.parallax || "0.25");
+        scrubParallax(el, speed);
+      });
+
+      // ── Number counters ──
+      const counters = document.querySelectorAll<HTMLElement>("[data-count]");
+      counters.forEach((el) => {
+        const to = parseFloat(el.dataset.count || "0");
+        revealOnScroll(el, () => countUp(el, to, { duration: 1500 }), {
+          threshold: 0.4,
+        });
+      });
+
+      // ── Magnetic elements ──
+      const magneticEls = document.querySelectorAll<HTMLElement>("[data-magnetic]");
+      magneticEls.forEach((el) => magnetic(el, 0.35));
+
+      // ── Body background color morph on section enter ──
+      const colorSections = document.querySelectorAll<HTMLElement>("[data-bg-color]");
+      colorSections.forEach((section) => {
+        const color = section.dataset.bgColor || "#07070a";
+        bgMorphOnScroll(section, color);
+      });
+
+      // ── Stroke-to-fill text (philosophy principles) ──
+      const strokeFillEls = document.querySelectorAll<HTMLElement>("[data-stroke-fill]");
+      strokeFillEls.forEach((el) => toggleOnScroll(el, "filled", { threshold: 0.6 }));
+
+      // ── Reveal boxes (swipe) ──
+      const revealBoxes = document.querySelectorAll<HTMLElement>("[data-reveal]");
+      revealBoxes.forEach((el) => toggleOnScroll(el, "active", { threshold: 0.5, once: true }));
+
+      // ── SVG draw (amber accent paths) ──
+      // Target paths only — doodle wraps use a separate `data-draw-strokes` attr
+      // to avoid colliding with this selector (div has no getTotalLength).
+      const drawPaths = document.querySelectorAll<SVGPathElement>("path[data-draw]");
+      drawPaths.forEach((path) => {
+        const len = path.getTotalLength();
+        path.style.strokeDasharray = `${len}`;
+        path.style.strokeDashoffset = `${len}`;
+        revealOnScroll(
+          path as unknown as HTMLElement,
+          () => {
+            animate(path, {
+              strokeDashoffset: [len, 0],
+              duration: 1400,
+              ease: ease.outQuart,
+            });
+          },
+          { threshold: 0.4 },
+        );
+      });
+
+      // ── Doodles: fade in + gentle float on section enter ──
+      // (stroke-draw disabled — it broke the anime engine on first tick.
+      //  Fade-in alone keeps doodles visible without risking the engine.)
+      const doodleWraps = document.querySelectorAll<HTMLElement>(".doodle-wrap");
+      const doodleFloats: { el: HTMLElement; amp: number; phase: number }[] = [];
+      doodleWraps.forEach((wrap) => {
+        const amp = parseFloat(wrap.dataset.float || "0");
+        revealOnScroll(
+          wrap,
+          () => {
+            wrap.style.opacity = "1";
+            animate(wrap, { opacity: [0, 1], duration: 700, ease: ease.outQuart });
+          },
+          { threshold: 0.2 },
+        );
+        if (amp > 0) doodleFloats.push({ el: wrap, amp, phase: Math.random() * Math.PI * 2 });
+      });
+
+      // Shared doodle float loop (single rAF for all floating doodles)
+      if (doodleFloats.length > 0 && !reduced) {
+        const dStart = performance.now();
+        let dRaf = 0;
+        const tickDoodles = (now: number) => {
+          const t = (now - dStart) / 1000;
+          for (const f of doodleFloats) {
+            const dy = Math.sin(t * 1.1 + f.phase) * f.amp;
+            const dx = Math.cos(t * 0.8 + f.phase) * f.amp * 0.4;
+            f.el.style.transform = `translate3d(${dx.toFixed(2)}px, ${dy.toFixed(2)}px, 0)`;
+          }
+          dRaf = requestAnimationFrame(tickDoodles);
+        };
+        dRaf = requestAnimationFrame(tickDoodles);
+      }
+
+      // ── GuidePath companion: progressive draw + active node on scroll ──
+      const guidePath = document.getElementById("guide-main-path") as
+        | SVGPathElement
+        | null;
+      const guideWrap = document.getElementById("guide-path");
+      if (guidePath && guideWrap) {
+        const glen = guidePath.getTotalLength();
+        guidePath.style.strokeDasharray = `${glen}`;
+        guidePath.style.strokeDashoffset = `${glen}`;
+        // Tie dashoffset to overall page scroll progress (drawn as user scrolls down)
+        onGlobalScroll(() => {
+          const st = document.documentElement.scrollTop || document.body.scrollTop;
+          const h = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+          const p = h > 0 ? Math.min(1, Math.max(0, st / h)) : 0;
+          guidePath.style.strokeDashoffset = `${glen * (1 - p)}`;
+        });
+      }
+      // Active node + annotation: scroll-position-based (more reliable than IO band)
+      const sectionIds = ["hero", "about", "projects", "philosophy", "proof", "contact"];
+      const guideNodes = document.querySelectorAll<SVGCircleElement>(".guide-node");
+      const guideAnnos = document.querySelectorAll<SVGGElement>(".guide-anno");
+      let lastActive = "";
+      onGlobalScroll(() => {
+        const vh = window.innerHeight;
+        let current = sectionIds[0];
+        for (const id of sectionIds) {
+          const sec = document.getElementById(id);
+          if (!sec) continue;
+          const r = sec.getBoundingClientRect();
+          // section whose top is at or above viewport mid is "current"
+          if (r.top <= vh * 0.5) current = id;
+        }
+        if (current !== lastActive) {
+          lastActive = current;
+          guideNodes.forEach((n) => n.classList.remove("active"));
+          guideAnnos.forEach((a) => a.classList.remove("active"));
+          const node = document.querySelector<SVGCircleElement>(`.guide-node[data-node="${current}"]`);
+          const anno = document.querySelector<SVGGElement>(`.guide-anno[data-anno="${current}"]`);
+          node?.classList.add("active");
+          anno?.classList.add("active");
+        }
+      });
+      // Trigger an initial measurement
+      window.dispatchEvent(new Event("scroll"));
+
+      // ── Horizontal scroll: projects & philosophy (pinned) ──
+      // Consolidated into the single global scroll loop (no per-section rAF).
+      function setupHScroll(sectionId: string, trackId: string) {
+        const section = document.getElementById(sectionId);
+        const track = document.getElementById(trackId);
+        if (!section || !track) return;
+        if (window.matchMedia("(max-width: 767px)").matches) return; // skip pin on mobile
+        onGlobalScroll(() => {
+          const rect = section.getBoundingClientRect();
+          const vh = window.innerHeight;
+          if (rect.top <= 0 && rect.bottom > vh) {
+            const total = track.scrollWidth - window.innerWidth;
+            const progress = Math.min(1, Math.max(0, -rect.top / (rect.height - vh)));
+            track.style.transform = `translate3d(${-total * progress}px, 0, 0)`;
+          } else if (rect.top > 0) {
+            track.style.transform = `translate3d(0, 0, 0)`;
+          }
+        });
+      }
+      setupHScroll("projects", "projects-track");
+      setupHScroll("philosophy", "philosophy-track");
+
+      // ── Mobile nav toggle ──
+      const mobileToggle = document.getElementById("mobile-toggle");
+      const mobilePanel = document.getElementById("mobile-panel");
+      const bar1 = document.getElementById("bar1");
+      const bar2 = document.getElementById("bar2");
+      const bar3 = document.getElementById("bar3");
+      let menuOpen = false;
+      const setMenu = (open: boolean) => {
+        menuOpen = open;
+        if (mobileToggle) mobileToggle.setAttribute("aria-expanded", String(open));
+        if (mobilePanel) {
+          mobilePanel.style.transform = open ? "translateX(0)" : "translateX(100%)";
+          mobilePanel.style.pointerEvents = open ? "auto" : "none";
+        }
+        if (bar1) bar1.style.transform = open ? "translateY(7px) rotate(45deg)" : "";
+        if (bar2) bar2.style.opacity = open ? "0" : "1";
+        if (bar3) bar3.style.transform = open ? "translateY(-7px) rotate(-45deg)" : "";
+      };
+      mobileToggle?.addEventListener("click", () => setMenu(!menuOpen));
+      document.querySelectorAll(".mobile-link").forEach((a) =>
+        a.addEventListener("click", () => setMenu(false)),
+      );
+
+      // ── Keyboard: ESC closes mobile menu ──
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && menuOpen) setMenu(false);
+      });
+    </script>
+  </body>
+</html>
