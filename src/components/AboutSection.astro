@@ -9,9 +9,11 @@ interface Props {
 const { data } = Astro.props as Props;
 ---
 
+<!-- `overflow-x-clip`, not `overflow-hidden`: `hidden` would turn this section into a
+     scroll container and break the `md:sticky` highlights panel below. -->
 <section
   id="about"
-  class="relative py-32 md:py-48 overflow-hidden bg-ink"
+  class="relative py-32 md:py-48 overflow-x-clip"
   data-bg-color="#07070a"
 >
   <DoodleLayer section="about" />
@@ -19,7 +21,7 @@ const { data } = Astro.props as Props;
 
     <!-- Section label -->
     <div class="flex items-center gap-4 mb-16" data-animate>
-      <span class="mono-label-accent">// {data.title}</span>
+      <span class="mono-label-accent">// 01 {data.title}</span>
       <div class="accent-line flex-1 max-w-[200px]"></div>
     </div>
 

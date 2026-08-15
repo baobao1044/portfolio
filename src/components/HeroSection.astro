@@ -13,10 +13,12 @@ const headline = `${data.headlineLineOne} ${data.headlineLineTwo}`;
 
 <section
   id="hero"
-  class="relative min-h-screen flex items-center justify-center overflow-hidden bg-ink"
+  class="relative min-h-screen flex items-center justify-center overflow-x-clip"
   data-bg-color="#07070a"
 >
   <DoodleLayer section="hero" />
+  <!-- Cursor-tracked light source; --hx/--hy are written in BaseLayout. -->
+  <div class="hero-glow" id="hero-glow"></div>
   <!-- Giant parallax background text -->
   <div
     class="absolute inset-0 flex items-center justify-center select-none pointer-events-none z-0 overflow-hidden"
@@ -34,7 +36,7 @@ const headline = `${data.headlineLineOne} ${data.headlineLineTwo}`;
 
   <div class="relative z-10 text-center px-6 max-w-5xl mx-auto pt-20">
     <h1
-      class="font-sans font-black text-[14vw] md:text-[8.5vw] leading-[0.9] tracking-tightest text-ash overflow-hidden"
+      class="font-sans font-black text-[14vw] md:text-[8.5vw] leading-[0.9] tracking-tightest text-ash"
       data-hero="title"
     >
       {headline}
@@ -51,7 +53,7 @@ const headline = `${data.headlineLineOne} ${data.headlineLineTwo}`;
       <a
         href={data.ctaPrimary.href}
         data-magnetic
-        class="btn-hover inline-flex items-center gap-2 px-8 py-3.5 bg-accent text-ink font-mono text-xs uppercase tracking-[0.2em] font-bold"
+        class="btn-hover bloom-sm inline-flex items-center gap-2 px-8 py-3.5 bg-accent text-ink font-mono text-xs uppercase tracking-[0.2em] font-bold"
         data-cursor="hover"
       >
         {data.ctaPrimary.label}
@@ -72,7 +74,7 @@ const headline = `${data.headlineLineOne} ${data.headlineLineTwo}`;
         data.stats.map((s) => (
           <div class="text-center">
             <div
-              class="font-sans text-4xl md:text-5xl font-bold text-accent tabular-nums"
+              class="font-sans text-4xl md:text-5xl font-bold text-accent tabular-nums bloom-text"
               data-count={s.value}
             >
               0
@@ -85,7 +87,7 @@ const headline = `${data.headlineLineOne} ${data.headlineLineTwo}`;
   </div>
 
   <!-- Marquee strip (role tagline) -->
-  <div class="absolute bottom-20 left-0 w-full overflow-hidden z-10 pointer-events-none">
+  <div class="absolute bottom-16 left-0 w-full overflow-hidden z-10 pointer-events-none">
     <div class="marquee-track">
       <div class="marquee-content">
         {
@@ -99,13 +101,12 @@ const headline = `${data.headlineLineOne} ${data.headlineLineTwo}`;
     </div>
   </div>
 
-  <!-- Scroll indicator -->
+  <!-- Scroll indicator (line only — the word collided with the marquee above) -->
   <div
-    class="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-20"
+    class="absolute bottom-5 left-1/2 -translate-x-1/2 flex flex-col items-center z-20"
     data-hero="scroll"
   >
-    <span class="font-mono text-[10px] text-mute tracking-[0.3em] uppercase">Scroll</span>
-    <div class="w-px h-10 bg-inkLine animate-scroll-line"></div>
+    <div class="w-px h-8 bg-accent/40 animate-scroll-line"></div>
   </div>
 
   <!-- Amber accent line, drawn on load -->

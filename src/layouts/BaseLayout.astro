@@ -2,7 +2,6 @@
 import "../styles/global.css";
 import CustomCursor from "../components/ui/CustomCursor.astro";
 import ShaderBg from "../components/ui/ShaderBg.astro";
-import MatrixRain from "../components/ui/MatrixRain.astro";
 import GuidePath from "../components/ui/GuidePath.astro";
 import * as portfolioData from "../data/portfolio";
 
@@ -49,9 +48,14 @@ const jsonLd = {
 ---
 
 <!doctype html>
-<html lang="en" class="h-full scroll-smooth antialiased">
+<!-- No `scroll-smooth`: Lenis owns scrolling, and a native
+     `scroll-behavior: smooth` fights it and makes anchor jumps stutter. -->
+<html lang="en" class="h-full antialiased">
   <head>
     <meta charset="utf-8" />
+    <!-- Runs before first paint so CSS can hide reveal targets and the native
+         cursor only when JS is actually alive. -->
+    <script is:inline>document.documentElement.classList.add("js");</script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <meta name="author" content={portfolioData.site.author} />
@@ -79,7 +83,7 @@ const jsonLd = {
     <title>{title}</title>
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   </head>
-  <body class="relative flex min-h-full flex-col overflow-x-hidden font-sans bg-ink text-ash">
+  <body class="relative flex min-h-full flex-col font-sans bg-ink text-ash">
     <!-- Cinematic intro overlay -->
     <div class="page-overlay" id="page-overlay">
       <div class="absolute inset-0 flex flex-col items-center justify-center gap-6">
@@ -91,11 +95,16 @@ const jsonLd = {
       </div>
     </div>
 
+    <!-- Background stack, bottom to top: grid (z-0) → shader (z-1) → vignette
+         (z-3) → scrim (z-4) → content (main, z-10). Sections are transparent so
+         the shader is actually visible; the scrim keeps text readable over it. -->
     <div class="grid-bg"></div>
-    <div class="vignette"></div>
 
     <ShaderBg />
-    <MatrixRain />
+
+    <div class="vignette"></div>
+    <div class="bg-scrim"></div>
+    <div class="grain"></div>
 
     <div
       class="fixed top-0 left-0 h-[2px] w-full z-50 bg-accent origin-left scale-x-0"
@@ -106,7 +115,10 @@ const jsonLd = {
     <CustomCursor />
     <GuidePath />
 
-    <header class="fixed top-0 z-40 w-full px-6 py-6 md:py-8" id="main-header">
+    <!-- `lg:pl-24` reserves the gutter the fixed GuidePath rail occupies at the
+         left edge; without it the logo and section labels print on top of the
+         rail's "// start", "// trace" annotations. -->
+    <header class="site-header fixed top-0 z-40 w-full px-6 lg:pl-24 py-6 md:py-8" id="main-header">
       <nav class="mx-auto flex max-w-[1400px] items-center justify-between">
         <a
           href={base}
@@ -163,7 +175,7 @@ const jsonLd = {
       </div>
     </header>
 
-    <main class="flex-grow relative z-10">
+    <main class="flex-grow relative z-10 lg:pl-24">
       <slot />
     </main>
 
@@ -251,7 +263,7 @@ const jsonLd = {
       }
 
       // ── Hero entrance (split-text stagger) ──
-      const heroEls = ["subtitle", "title", "desc", "buttons", "scroll"]
+      const heroEls = ["subtitle", "title", "desc", "buttons", "stats", "scroll"]
         .map((k) => document.querySelector(`[data-hero="${k}"]`))
         .filter(Boolean) as HTMLElement[];
       if (heroEls.length > 0) {
@@ -259,17 +271,32 @@ const jsonLd = {
         const heroTitle = document.querySelector<HTMLElement>('[data-hero="title"]');
         let chars: HTMLElement[] = [];
         if (heroTitle && !reduced) {
-          // wrap each text node char; preserve any existing spans
-          const text = heroTitle.textContent || "";
+          // Split into WORDS first, then chars inside each word. Splitting
+          // straight to inline-block chars lets the browser break a line
+          // between any two of them, which shredded the headline mid-word
+          // ("Reason without l / anguage.").
+          //
+          // Each char also gets an inner span: the entrance timeline animates
+          // the outer one while liveText() animates the inner one, so the two
+          // never fight over the same inline `transform`.
+          const text = (heroTitle.textContent || "").trim();
           heroTitle.innerHTML = "";
           const frag = document.createDocumentFragment();
-          for (const ch of text) {
-            const s = document.createElement("span");
-            s.className = "split-char";
-            s.style.display = "inline-block";
-            s.textContent = ch === " " ? "\u00A0" : ch;
-            frag.appendChild(s);
-          }
+          text.split(/\s+/).forEach((word, wi, arr) => {
+            const w = document.createElement("span");
+            w.className = "split-word";
+            for (const ch of word) {
+              const c = document.createElement("span");
+              c.className = "split-char";
+              const inner = document.createElement("span");
+              inner.className = "split-char-inner";
+              inner.textContent = ch;
+              c.appendChild(inner);
+              w.appendChild(c);
+            }
+            frag.appendChild(w);
+            if (wi < arr.length - 1) frag.appendChild(document.createTextNode(" "));
+          });
           heroTitle.appendChild(frag);
           chars = Array.from(heroTitle.querySelectorAll(".split-char"));
         }
@@ -277,15 +304,18 @@ const jsonLd = {
         // initial hidden state
         const nonTitle = heroEls.filter((e) => e.dataset.hero !== "title");
         animate(nonTitle, { opacity: [0, 0], y: 40, duration: 0 });
-        if (chars.length) animate(chars, { opacity: 0, yPercent: 120, rotateZ: 8, duration: 0 });
+        // Plain y offset rather than yPercent:120 — that needed an
+        // `overflow: hidden` mask on the h1, which clipped descenders and the
+        // headline's idle float.
+        if (chars.length) animate(chars, { opacity: 0, y: 44, rotateZ: 6, duration: 0 });
 
         const tl = createTimeline({ defaults: { ease: ease.outExpo } });
         if (chars.length) {
           tl.add(
             animate(chars, {
               opacity: [0, 1],
-              yPercent: [120, 0],
-              rotateZ: [8, 0],
+              y: [44, 0],
+              rotateZ: [6, 0],
               duration: 900,
               delay: stagger(28, { start: 700 }),
             }),
@@ -305,48 +335,78 @@ const jsonLd = {
         });
 
         // ── Make hero headline "live": continuous float + mouse reaction ──
+        // Starts only after the entrance has finished, and drives the inner
+        // spans, so it never overwrites the timeline's transforms mid-flight.
         if (heroTitle && chars.length && !reduced) {
-          liveText(heroTitle, { amp: 4, speed: 1.1, mouseRadius: 180, mouseStrength: 16 });
+          const entranceMs = 700 + chars.length * 28 + 900;
+          setTimeout(() => {
+            liveText(heroTitle, { amp: 3, speed: 1.1, mouseRadius: 180, mouseStrength: 14 });
+          }, entranceMs);
         }
       }
 
-      // ── Progress bar (consolidated into the single global scroll loop) ──
+      // ── Progress bar + header backdrop (single global scroll loop) ──
       const progressBar = document.getElementById("progress-bar");
+      const header = document.getElementById("main-header");
       onGlobalScroll(() => {
-        if (!progressBar) return;
         const st = document.documentElement.scrollTop || document.body.scrollTop;
-        const h = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-        progressBar.style.transform = `scaleX(${h > 0 ? st / h : 0})`;
+        if (progressBar) {
+          const h = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+          progressBar.style.transform = `scaleX(${h > 0 ? st / h : 0})`;
+        }
+        header?.classList.toggle("scrolled", st > 40);
       });
 
       // ── Scroll-triggered fade-up reveals ──
+      // The hidden start state lives in CSS (`html.js [data-animate]`), so the
+      // element is never painted visible and then yanked back to opacity 0 —
+      // that was the flicker where content appeared, vanished, then slid in.
       const revealEls = document.querySelectorAll<HTMLElement>("[data-animate]");
       revealEls.forEach((el, i) => {
-        revealOnScroll(el, () => {
-          animate(el, {
-            opacity: [0, 1],
-            y: [48, 0],
-            duration: 900,
-            ease: ease.outExpo,
-            delay: (i % 4) * 80,
-          });
-        });
+        if (reduced) {
+          el.style.opacity = "1";
+          el.style.transform = "none";
+          return;
+        }
+        revealOnScroll(
+          el,
+          () => {
+            animate(el, {
+              opacity: [0, 1],
+              y: [48, 0],
+              duration: 900,
+              ease: ease.outExpo,
+              delay: (i % 4) * 80,
+            });
+          },
+          { threshold: 0, rootMargin: "0px 0px -12% 0px" },
+        );
       });
 
       // ── Split-text reveal for section headings ──
       const splitHeadings = document.querySelectorAll<HTMLElement>("[data-split-text]");
       splitHeadings.forEach((el) => {
-        if (reduced) return;
-        revealOnScroll(el, () => {
-          const c = splitChars(el);
-          animate(c, {
-            opacity: [0, 1],
-            y: [40, 0],
-            duration: 700,
-            ease: ease.outExpo,
-            delay: stagger(20),
-          });
-        });
+        if (reduced) {
+          el.classList.add("is-split");
+          return;
+        }
+        revealOnScroll(
+          el,
+          () => {
+            const c = splitChars(el);
+            // Unhide only after splitText has rewritten the DOM, so the reflow
+            // happens while the heading is still invisible.
+            el.classList.add("is-split");
+            animate(c, {
+              opacity: [0, 1],
+              y: [40, 0],
+              duration: 700,
+              ease: ease.outExpo,
+              delay: stagger(20),
+            });
+          },
+          { threshold: 0, rootMargin: "0px 0px -12% 0px" },
+        );
       });
 
       // ── Parallax (multi-layer) ──
@@ -368,6 +428,80 @@ const jsonLd = {
       // ── Magnetic elements ──
       const magneticEls = document.querySelectorAll<HTMLElement>("[data-magnetic]");
       magneticEls.forEach((el) => magnetic(el, 0.35));
+
+      // ── Project cards: cursor tilt + spotlight ──
+      // Gives the cards a light source and a sense of being physical objects
+      // instead of flat rectangles. Pointer-driven, so nothing runs at idle.
+      if (!reduced && !isTouch) {
+        document.querySelectorAll<HTMLElement>(".project-h-card").forEach((card) => {
+          let queued: { x: number; y: number } | null = null;
+          let frame = 0;
+
+          const apply = () => {
+            frame = 0;
+            if (!queued) return;
+            const { x, y } = queued;
+            queued = null;
+            card.style.setProperty("--mx", `${x * 100}%`);
+            card.style.setProperty("--my", `${y * 100}%`);
+            animate(card, {
+              rotateX: (0.5 - y) * 7,
+              rotateY: (x - 0.5) * 9,
+              duration: 420,
+              ease: ease.outQuart,
+            });
+          };
+
+          card.addEventListener("mousemove", (e) => {
+            const r = card.getBoundingClientRect();
+            queued = { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height };
+            if (!frame) frame = requestAnimationFrame(apply);
+          });
+
+          card.addEventListener("mouseleave", () => {
+            if (frame) cancelAnimationFrame(frame);
+            frame = 0;
+            queued = null;
+            animate(card, { rotateX: 0, rotateY: 0, duration: 800, ease: ease.spring });
+          });
+        });
+      }
+
+      // ── Hero light source follows the cursor ──
+      const heroGlow = document.getElementById("hero-glow");
+      if (heroGlow && !reduced && !isTouch) {
+        const hero = document.getElementById("hero");
+        let tx = 50;
+        let ty = 42;
+        let cx = 50;
+        let cy = 42;
+        let glowRaf = 0;
+
+        const settle = () => {
+          cx += (tx - cx) * 0.07;
+          cy += (ty - cy) * 0.07;
+          heroGlow.style.setProperty("--hx", `${cx.toFixed(2)}%`);
+          heroGlow.style.setProperty("--hy", `${cy.toFixed(2)}%`);
+          // Stop once it has caught up; the next mousemove restarts the loop.
+          if (Math.abs(tx - cx) > 0.1 || Math.abs(ty - cy) > 0.1) {
+            glowRaf = requestAnimationFrame(settle);
+          } else {
+            glowRaf = 0;
+          }
+        };
+
+        window.addEventListener(
+          "mousemove",
+          (e) => {
+            const r = hero?.getBoundingClientRect();
+            if (!r || r.bottom < 0) return;
+            tx = ((e.clientX - r.left) / r.width) * 100;
+            ty = ((e.clientY - r.top) / r.height) * 100;
+            if (!glowRaf) glowRaf = requestAnimationFrame(settle);
+          },
+          { passive: true },
+        );
+      }
 
       // ── Body background color morph on section enter ──
       const colorSections = document.querySelectorAll<HTMLElement>("[data-bg-color]");
@@ -484,27 +618,103 @@ const jsonLd = {
       // Trigger an initial measurement
       window.dispatchEvent(new Event("scroll"));
 
+      // Lenis' own smoothed per-frame velocity. A hand-rolled delta oscillated,
+      // because scroll events and the relax loop interleave frame by frame.
+      // Lenis keeps reporting a tiny residual after the scroll visually stops,
+      // so anything under a pixel per frame counts as standing still — without
+      // that deadband the relax loop below can never reach its exit condition.
+      const scrollVelocity = () => {
+        const v = (lenis as unknown as { velocity?: number }).velocity || 0;
+        return Math.abs(v) < 1 ? 0 : v;
+      };
+
       // ── Horizontal scroll: projects & philosophy (pinned) ──
-      // Consolidated into the single global scroll loop (no per-section rAF).
-      function setupHScroll(sectionId: string, trackId: string) {
-        const section = document.getElementById(sectionId);
-        const track = document.getElementById(trackId);
-        if (!section || !track) return;
-        if (window.matchMedia("(max-width: 767px)").matches) return; // skip pin on mobile
-        onGlobalScroll(() => {
-          const rect = section.getBoundingClientRect();
-          const vh = window.innerHeight;
-          if (rect.top <= 0 && rect.bottom > vh) {
-            const total = track.scrollWidth - window.innerWidth;
-            const progress = Math.min(1, Math.max(0, -rect.top / (rect.height - vh)));
-            track.style.transform = `translate3d(${-total * progress}px, 0, 0)`;
-          } else if (rect.top > 0) {
-            track.style.transform = `translate3d(0, 0, 0)`;
+      // Measured against the pin WRAPPER, not the whole section. Using the
+      // section meant its title block (~470px tall) counted as scroll distance,
+      // so the track started sliding long before the sticky child pinned.
+      //
+      // The wrapper height is derived from the real track width, which keeps
+      // vertical scroll and horizontal travel 1:1 and leaves no dead screens.
+      function setupHScroll(wrap: HTMLElement) {
+        const track = document.getElementById(wrap.dataset.hscrollTrack || "");
+        const pin = wrap.querySelector<HTMLElement>(".h-scroll-pin");
+        if (!track || !pin) return;
+
+        let travel = 0;
+        const measure = () => {
+          if (window.matchMedia("(max-width: 767px)").matches) {
+            wrap.style.height = "";
+            track.style.transform = "";
+            travel = 0;
+            return;
           }
-        });
+          // scrollWidth omits the flex container's trailing padding, so add it
+          // back or the final card stops flush against the viewport edge.
+          const padRight = parseFloat(getComputedStyle(track).paddingLeft) || 0;
+          travel = Math.max(0, track.scrollWidth + padRight - pin.clientWidth);
+          wrap.style.height = `${window.innerHeight + travel}px`;
+        };
+
+        let skew = 0;
+        let raf = 0;
+
+        const render = () => {
+          if (travel <= 0) return;
+          const rect = wrap.getBoundingClientRect();
+          const distance = rect.height - window.innerHeight;
+          if (distance <= 0) return;
+          // Always clamp and always write: the old version skipped the update
+          // once the section bottom passed, freezing the track short of its end
+          // so the last card never fully arrived.
+          const p = Math.min(1, Math.max(0, -rect.top / distance));
+          const x = -travel * p;
+          // Lean into the direction of travel, then relax — reads as inertia
+          // rather than a value being assigned to a transform. Taken from
+          // Lenis' own smoothed velocity; a hand-rolled per-frame delta
+          // oscillated because scroll events and the relax loop interleave.
+          const v = reduced ? 0 : scrollVelocity();
+          const target = Math.max(-4, Math.min(4, v * 0.045));
+          skew += (target - skew) * 0.18;
+          if (Math.abs(skew) < 0.05) skew = 0;
+          track.style.transform = `translate3d(${x}px, 0, 0) skewX(${skew.toFixed(2)}deg)`;
+        };
+
+        // Scroll events stop the instant the wheel does, so the lean needs its
+        // own loop to unwind or the cards stay permanently skewed. The loop
+        // owns all rendering and exits only once both the lean and the scroll
+        // velocity have actually settled.
+        const loop = () => {
+          render();
+          raf = skew !== 0 || scrollVelocity() !== 0 ? requestAnimationFrame(loop) : 0;
+        };
+        const update = () => {
+          if (!raf) raf = requestAnimationFrame(loop);
+        };
+
+        measure();
+        update();
+        window.addEventListener("resize", () => {
+          measure();
+          update();
+        }, { passive: true });
+        onGlobalScroll(update);
       }
-      setupHScroll("projects", "projects-track");
-      setupHScroll("philosophy", "philosophy-track");
+      document
+        .querySelectorAll<HTMLElement>("[data-hscroll-track]")
+        .forEach(setupHScroll);
+
+      // ── Anchor links go through Lenis ──
+      // Native anchor jumps bypass the smooth-scroll instance and teleport.
+      document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]').forEach((a) => {
+        a.addEventListener("click", (e) => {
+          const id = a.getAttribute("href");
+          if (!id || id === "#") return;
+          const target = document.querySelector(id);
+          if (!target) return;
+          e.preventDefault();
+          lenis.scrollTo(target as HTMLElement, { offset: -80, duration: 1.4 });
+        });
+      });
 
       // ── Mobile nav toggle ──
       const mobileToggle = document.getElementById("mobile-toggle");

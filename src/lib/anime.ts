@@ -264,7 +264,11 @@ export function liveText(
   }
   const { amp = 4, speed = 1.2, mouseRadius = 160, mouseStrength = 14 } = opts;
 
-  const chars = Array.from(container.querySelectorAll<HTMLElement>(".split-char"));
+  // Drive the INNER span: the entrance timeline owns `.split-char`'s transform,
+  // and two writers on one inline style make the headline jitter.
+  const chars = Array.from(
+    container.querySelectorAll<HTMLElement>(".split-char-inner"),
+  );
   if (chars.length === 0) return;
 
   // Precompute each char's center offset relative to container

@@ -5,26 +5,38 @@
 @layer base {
   html {
     background-color: #07070a;
-    /* custom cursor enabled; hide native cursor on fine-pointer devices */
-    cursor: none;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
 
+  /* The custom cursor replaces the native one, so only hide the native pointer
+     once JS has actually booted — otherwise a script failure leaves the page
+     with no cursor at all. `.js` is set by an inline script in <head>. */
+  html.js,
+  html.js body {
+    cursor: none;
+  }
   @media (pointer: coarse) {
-    html { cursor: auto; }
+    html.js,
+    html.js body { cursor: auto; }
   }
 
   body {
     @apply font-sans text-ash bg-ink;
     background-color: #07070a;
     min-height: 100vh;
-    cursor: none;
-    overflow-x: hidden;
+    /* `clip`, not `hidden`: `overflow-x: hidden` forces `overflow-y` to `auto`,
+       making <body> a scroll container and breaking every descendant sticky. */
+    overflow-x: clip;
   }
 
-  @media (pointer: coarse) {
-    body { cursor: auto; }
+  /* Lenis owns scrolling; a native smooth scroll-behavior fights it. */
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
   }
 
   ::selection {
@@ -74,13 +86,105 @@
     mask-image: radial-gradient(ellipse at center, #000 30%, transparent 80%);
   }
 
-  /* ── Vignette (subtle, ink) ── */
+  /* ── Vignette (subtle, ink) ──
+     Sits above the shader canvas but BELOW page content (main is z-10). At its
+     old z-9998 it tinted the text and nav too, greying out the whole page. */
   .vignette {
     position: fixed;
     inset: 0;
     pointer-events: none;
-    z-index: 9998;
-    background: radial-gradient(circle at center, transparent 50%, rgba(7, 7, 10, 0.6) 100%);
+    z-index: 3;
+    background: radial-gradient(circle at center, transparent 45%, rgba(7, 7, 10, 0.85) 100%);
+  }
+
+  /* Readability scrim between the animated shader and the content. */
+  .bg-scrim {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 4;
+    background: rgba(7, 7, 10, 0.62);
+  }
+
+  /* ── Film grain ──
+     Flat dark surfaces read as cheap because they're mathematically clean.
+     A little static noise gives the ink texture and hides gradient banding.
+     Inset -50% + a stepped shuffle so the tile edges never show. */
+  .grain {
+    position: fixed;
+    inset: -50%;
+    z-index: 5;
+    pointer-events: none;
+    opacity: 0.19;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation: grain-shuffle 0.7s steps(1) infinite;
+    will-change: transform;
+  }
+  @keyframes grain-shuffle {
+    0%   { transform: translate3d(0, 0, 0); }
+    12%  { transform: translate3d(-3%, -2%, 0); }
+    25%  { transform: translate3d(2%, -4%, 0); }
+    37%  { transform: translate3d(-1%, 3%, 0); }
+    50%  { transform: translate3d(3%, 1%, 0); }
+    62%  { transform: translate3d(-4%, -1%, 0); }
+    75%  { transform: translate3d(1%, 4%, 0); }
+    87%  { transform: translate3d(-2%, 2%, 0); }
+    100% { transform: translate3d(0, 0, 0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .grain { animation: none; }
+  }
+
+  /* ── Amber bloom ──
+     The accent was only ever used as flat 1px lines and small labels, so the
+     palette never actually lit anything. These give it a light source. */
+  .bloom-sm {
+    box-shadow: 0 0 18px rgba(245, 158, 11, 0.22), 0 0 48px rgba(245, 158, 11, 0.08);
+  }
+  .bloom-text {
+    text-shadow: 0 0 22px rgba(245, 158, 11, 0.45), 0 0 60px rgba(245, 158, 11, 0.18);
+  }
+  .bloom-line {
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
+  }
+
+  /* ── Hero light source (follows the cursor) ── */
+  .hero-glow {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: radial-gradient(
+      620px circle at var(--hx, 50%) var(--hy, 42%),
+      rgba(245, 158, 11, 0.17),
+      rgba(245, 158, 11, 0.05) 38%,
+      transparent 68%
+    );
+  }
+
+  /* ── Pinned horizontal-scroll section ──
+     Height is assigned by JS from the real track width so vertical scroll maps
+     1:1 onto horizontal travel. Without JS (or on mobile) it degrades to a
+     normal horizontal swipe instead of a screen-tall empty block. */
+  .h-scroll-wrap {
+    height: auto;
+  }
+  @media (max-width: 767px) {
+    .h-scroll-pin {
+      position: static;
+      height: auto;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      padding-block: 1rem 2.5rem;
+      -webkit-overflow-scrolling: touch;
+    }
+    .h-scroll-pin > div {
+      transform: none !important;
+    }
+    .h-scroll-pin > div > * {
+      scroll-snap-align: center;
+    }
   }
 
   /* ── Mono label (terminal-ish, with // prefix via ::before) ── */
@@ -89,12 +193,14 @@
   }
   .mono-label-accent {
     @apply font-mono text-xs uppercase tracking-[0.3em] text-accent;
+    text-shadow: 0 0 18px rgba(245, 158, 11, 0.4);
   }
 
   /* ── Accent divider line ── */
   .accent-line {
     height: 1px;
     background: linear-gradient(90deg, transparent, #f59e0b, transparent);
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.35);
   }
 
   /* ── Button micro-interactions ── */
@@ -104,10 +210,26 @@
   }
   .btn-hover:hover {
     transform: scale(1.04);
-    box-shadow: 0 8px 32px rgba(245, 158, 11, 0.25);
+    box-shadow: 0 8px 32px rgba(245, 158, 11, 0.4),
+      0 0 60px rgba(245, 158, 11, 0.22);
   }
   .btn-hover:active {
     transform: scale(0.97);
+  }
+
+  /* ── Fixed header backdrop ──
+     Transparent at the top of the page; once scrolled it needs a backdrop or
+     page content simply runs underneath and collides with the nav labels. */
+  .site-header {
+    transition: background-color 0.35s ease, backdrop-filter 0.35s ease,
+      border-color 0.35s ease;
+    border-bottom: 1px solid transparent;
+  }
+  .site-header.scrolled {
+    background: rgba(7, 7, 10, 0.72);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom-color: rgba(28, 28, 34, 0.9);
   }
 
   /* ── Nav link underline slide ── */
@@ -181,14 +303,46 @@
     100% { transform: translateX(101%); }
   }
 
-  /* ── Horizontal project card ── */
+  /* ── Horizontal project card ──
+     Transform is owned by JS (cursor tilt), so no transform here or the two
+     would overwrite each other. Only lighting is animated in CSS. */
+  .h-scroll-pin {
+    perspective: 1600px;
+  }
   .project-h-card {
-    transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1),
-      border-color 0.4s ease;
+    position: relative;
+    transform-style: preserve-3d;
+    background-color: rgba(14, 14, 18, 0.55);
+    transition: border-color 0.4s ease, box-shadow 0.45s ease,
+      background-color 0.4s ease;
+  }
+  /* Cursor spotlight. --mx/--my are written by the tilt handler. */
+  .project-h-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    background: radial-gradient(
+      460px circle at var(--mx, 50%) var(--my, 50%),
+      rgba(245, 158, 11, 0.16),
+      transparent 62%
+    );
+  }
+  .project-h-card:hover::before {
+    opacity: 1;
   }
   .project-h-card:hover {
-    transform: translateY(-8px);
-    border-color: rgba(245, 158, 11, 0.5);
+    border-color: rgba(245, 158, 11, 0.55);
+    background-color: rgba(18, 16, 14, 0.72);
+    box-shadow: 0 24px 70px -20px rgba(0, 0, 0, 0.9),
+      0 0 42px -8px rgba(245, 158, 11, 0.28);
+  }
+  /* Keep card content above the spotlight layer. */
+  .project-h-card > * {
+    position: relative;
+    z-index: 1;
   }
 
   /* ── Social link hover lift ── */
@@ -242,17 +396,48 @@
     100% { transform: scaleY(0); opacity: 0; }
   }
 
-  /* ── Split-text char/word spans ── */
-  .split-char,
+  /* ── Split-text char/word spans ──
+     Words are the wrap unit. Chars are inline-block too, so without a word
+     wrapper the browser happily breaks a line between any two letters. */
   .split-word {
+    display: inline-block;
+    white-space: nowrap;
+  }
+  .split-char,
+  .split-char-inner {
     display: inline-block;
     will-change: transform, opacity;
   }
 
   /* ── Cursor targets ── */
-  [data-cursor="hover"],
-  a,
-  button {
+  html.js [data-cursor="hover"],
+  html.js a,
+  html.js button {
     cursor: none;
+  }
+
+  /* ── Scroll-reveal initial state ──
+     Must be declared in CSS, not by JS on intersect. Setting opacity:0 from the
+     observer means the element is painted first and only then yanked away, so
+     the user watches content appear, vanish, and slide back in. The `.js` guard
+     keeps everything visible if the script never runs. */
+  html.js [data-animate] {
+    opacity: 0;
+    transform: translateY(48px);
+    will-change: transform, opacity;
+  }
+  html.js [data-split-text] {
+    opacity: 0;
+  }
+  html.js [data-split-text].is-split {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html.js [data-animate],
+    html.js [data-split-text] {
+      opacity: 1;
+      transform: none;
+    }
   }
 }

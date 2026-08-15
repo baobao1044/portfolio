@@ -93,12 +93,14 @@
 </div>
 
 <style>
+  /* Starts below the fixed header: at top:0 the "// start" annotation printed
+     on top of the logo. */
   .guide-path-wrap {
     position: fixed;
-    top: 0;
+    top: 88px;
     left: 0;
     width: 60px;
-    height: 100vh;
+    height: calc(100vh - 88px);
     z-index: 30;
     pointer-events: none;
     /* Tuned from 0.42 -> 0.5 so the line reads against the busy amber-on-ink shader. */

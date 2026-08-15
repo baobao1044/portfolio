@@ -10,16 +10,19 @@ interface Props {
 const { data, projects } = Astro.props as Props;
 ---
 
+<!-- `overflow-x-clip`, not `overflow-hidden`: `hidden` turns this section into a
+     scroll container, which silently kills the `position: sticky` pin below. -->
 <section
   id="projects"
-  class="relative bg-ink overflow-hidden"
+  class="relative overflow-x-clip"
   data-bg-color="#0e0e12"
 >
   <DoodleLayer section="projects" />
   <!-- Title block -->
   <div class="max-w-[1400px] mx-auto px-6 pt-32 md:pt-48 pb-12" data-animate>
     <div class="flex items-center gap-4 mb-6">
-      <span class="mono-label-accent">// {data.title}</span>
+      <span class="mono-label-accent">// 02</span>
+      <div class="accent-line flex-1 max-w-[160px]"></div>
     </div>
     <h2
       class="font-sans text-5xl md:text-7xl font-black text-ash leading-[0.95] tracking-tight"
@@ -33,14 +36,13 @@ const { data, projects } = Astro.props as Props;
     <div class="h-px w-full bg-inkLine mt-10"></div>
   </div>
 
-  <!-- Horizontal scroll: pinned section with tall height so vertical scroll drives x translate.
-       On mobile (no JS pin) this becomes a horizontal overflow scroll. -->
-  <div
-    class="projects-scroll-wrap relative"
-    style="height: calc(100vw + 60vh);"
-  >
+  <!-- Horizontal scroll. JS sets the wrapper height from the real track width so
+       every pixel of vertical scroll moves the track; a hardcoded height leaves
+       dead screens whenever the two don't line up. Mobile falls back to a native
+       horizontal swipe (see .h-scroll-wrap in global.css). -->
+  <div class="h-scroll-wrap relative" data-hscroll-track="projects-track">
     <div
-      class="sticky top-0 h-screen flex items-center overflow-hidden"
+      class="h-scroll-pin sticky top-0 h-screen flex items-center overflow-hidden"
     >
       <div
         class="flex gap-6 md:gap-8 px-6 will-change-transform"
