@@ -29,6 +29,9 @@ pnpm-debug.log*
 playwright-report/
 test-results/
 
+# local screenshot output from scripts/*.mjs
+shots/
+
 # misc local assets not meant for the repo
 *.mp3
 *.wav

@@ -1,81 +1,137 @@
 # BaoBG — Portfolio
 
-Personal portfolio of **Gia Bảo (BaoBG)** — AI Engineer & Systems Programmer.
-A single-page, static Astro site with a cinematic WebGL shader background,
-SVG doodles + a hand-drawn guide path, and motion built on **Anime.js v4**.
+Personal portfolio of **Gia Bảo (BaoBG)**, AI Engineer & Systems Programmer.
+
+Black and red, high contrast, built around one idea: a page made out of a web
+that writes itself as you scroll.
 
 > Live: **https://baobao1044.github.io/portfolio/**
 
 ---
 
+## What it does
+
+1. **Kinetic intro.** Six black-and-white cuts on a 300 ms beat (`CPU` → `FIRST`
+   → `NO GPU` → `NO CLUSTER` → `JUST CODE` → `BAOBG`), then a hard clip-path
+   wipe. Runs on CSS animations only, so it survives a slow script load; any
+   wheel, key or touch skips it. Once per session, and never under
+   `prefers-reduced-motion`.
+2. **Red field.** After the wipe the page is already bright red (`#ff2400`) with
+   near-black type — black on red measures 5.5:1, above WCAG AA.
+3. **The web.** Ten virtual cursors (five on touch) each own a vertical band.
+   Scrolling advances progress through that band, so the page is drawn just
+   ahead of the reader: lines, 45° hatch blocks, arc fans, dot fields and
+   lattice ticks, with a named pointer (`vagi`, `nse`, `re`, `pse`, …) at the
+   live end of each stroke. Every third cursor also writes — one large outlined
+   word per section (`CPU`, `SYSTEMS`, `COMPILER`, …) is struck left to right
+   behind the copy.
+
 ## Stack
 
-- **Astro 4** (static output) + **TypeScript** (strict)
-- **Tailwind CSS 3** — design tokens: deep ink + amber accent, Inter + JetBrains Mono
-- **Anime.js v4** — split-text, SVG draw, scrub parallax, number counters, magnetic, spring cursor
-- **WebGL** fragment-shader plasma background (1 draw call, DPR-capped, pauses when hidden)
-- **Canvas 2D** matrix code-rain (throttled to 24fps)
-- **Lenis** smooth scroll
-- Single consolidated `requestAnimationFrame` scroll loop for all scroll-driven effects
+- **Astro 4** — static output, no framework islands
+- **Tailwind 3** — two-colour token set, Anton + Archivo + JetBrains Mono
+- **No runtime dependencies.** `animejs` and `lenis` were removed with the
+  previous design; everything is vanilla TS in `src/lib/`
+
+## The cursor web
+
+`src/lib/cursorWeb.ts` builds the graph once from real DOM anchors marked
+`data-web` plus a jittered lattice inside each `data-section`, joins every node
+to its three nearest neighbours, adds one boundary thread per section, and adds
+one ornament per section from a four-mark vocabulary (hatch block, arc fan, dot
+field, lattice ticks) so neighbouring sections never repeat a mark. The words
+`webLexicon` names are measured in Anton and laid out at the foot of each
+section. The unit list is then split into contiguous vertical bands, one per
+cursor.
+
+Rendering is a fixed `<canvas>` behind the content, drawn on scroll only:
+
+- one rAF per scroll frame, no idle repaint
+- all measurement happens in `build()` — `draw()` reads no layout
+- units are culled against a viewport band before reaching the path; a culled
+  unit still consumes its length from the progress budget, so the drawing never
+  runs ahead of the reader
+- letters are struck through a clip rect that grows with progress, with a short
+  trailing rule and the cursor at the pen position
+- DPR capped at 2
+- rebuilt on resize (debounced), `fonts.ready`, and any `<details>` open that
+  changes document height
+- disabled entirely under `prefers-reduced-motion`
+
+With the web visible, the whole thing is a background thread of hairlines rather
+than a hero illustration — it never covers text and never takes a pointer event.
 
 ## Content
 
-All copy is data-driven from `src/data/portfolio.ts` (typed), sourced from
-[github.com/baobao1044](https://github.com/baobao1044):
+All copy is typed data in `src/data/portfolio.ts`. Each project's description,
+stack and facts are quoted from that repository's own README, read on
+**2026-11-09**:
 
-- **Hero** — split-text headline + live text (float + mouse-react) + stat counters
-- **About** — lead + paragraphs + highlights
-- **Projects** — top 6 repos (vAGI-2, bedrock-obfuscator, RE-super-agent, AOT-Compiler, NSE, pse-engine) on a pinned horizontal scroll
-- **Principles** — Correctness > Confidence · Efficiency > Scale · Verification > Guessing
-- **Evidence** — public artifacts and what they prove
-- **Contact** — email + GitHub / Website / @Vietrix
+| Project | Domain | Status |
+|---|---|---|
+| vAGI-2 | AI | research |
+| NSE | AI | research |
+| constant-state-attention | AI | research |
+| AOT-Compiler | Compilers | active |
+| rust-windows-compat | Systems | research |
+| pse-engine | Systems | active |
+| RE-super-agent | Tools | active |
+| bedrock-obfuscator | Tools | complete |
+| GameLagReducer | Tools | active |
+| down-faster | Tools | alpha |
+
+Repo stats come from the GitHub API (36 public repos, 15 stars, 10 featured).
+Where a README calls its own project research or alpha, the work list says the
+same thing — the Evidence section links every number back to its source.
 
 ## Develop
 
 ```bash
 npm install
-npm run dev      # http://localhost:4321
+npm run dev      # http://localhost:4321/portfolio/
 ```
 
-## Build & preview
+The site is configured with `base: "/portfolio/"`, so every local URL is
+**under `/portfolio/`**, not at the origin root.
+
+## Build & test
 
 ```bash
-npm run build    # static output → dist/
-npm run preview  # serve the build locally
+npm run build        # static output → dist/
+npm run preview      # serve the build
+npm run test:smoke   # Playwright: sections, 10 rows, <details>, canvas paint,
+                     # reduced motion, WCAG contrast, mobile overflow + nav
 ```
 
-## Deploy (GitHub Pages)
+`scripts/shots.mjs`, `scripts/a11y.mjs` and `scripts/overflow.mjs` are
+throwaway development harnesses (screenshots, axe sweep, overflow hunt). They are
+not part of the build and are safe to delete.
 
-Deployment is automatic via the GitHub Actions workflow in
-`.github/workflows/deploy.yml`:
+## Deploy
 
-1. Push to `main` triggers the workflow.
-2. It installs with `npm ci`, runs `npm run build`, and uploads `dist/`.
-3. The `deploy-pages` action publishes to GitHub Pages.
-
-The site is configured as a **project page**, so `astro.config.mjs` sets
-`site: "https://baobao1044.github.io"` and `base: "/portfolio/"` — all asset,
-sitemap, canonical, and OG URLs are built relative to that base.
-
-In the repo settings: **Settings → Pages → Build and deployment → Source =
-GitHub Actions**.
+`.github/workflows/deploy.yml` builds with `npm ci` and publishes `dist/` to
+GitHub Pages on every push to `main`. Repo settings must have
+**Settings → Pages → Source = GitHub Actions**.
 
 ## Structure
 
 ```
 src/
-  components/        section components + ui/ (cursor, shader, matrix, doodles, guide)
-  data/             portfolio.ts (typed content), doodles.ts
-  layouts/          BaseLayout.astro (SEO, fonts, intro, motion script)
-  lib/              anime.ts (Anime.js v4 helpers)
-  pages/            index.astro
-  styles/           global.css
-public/             favicon.svg
-.github/workflows/  deploy.yml
+  components/        six sections + ui/ (IntroOverlay, CursorWeb)
+  data/              portfolio.ts — every claim, typed
+  layouts/           BaseLayout.astro (SEO, JSON-LD, nav, footer)
+  lib/               intro.ts, cursorWeb.ts
+  pages/             index.astro
+  styles/            global.css (tokens, display type, intro, web)
+public/              favicon.svg
+tests/               smoke.spec.ts
 ```
 
 ## Notes
 
-- Motion respects `prefers-reduced-motion` (live-text and shader stay calm).
-- Touch devices skip magnetic effects and mouse-react text.
-- Custom cursor is disabled on coarse pointers.
+- Motion respects `prefers-reduced-motion`: no intro, no web, no hover
+  transitions.
+- Only black and red are used; no other hue appears on the page.
+- `overflow-x: clip` rather than `hidden` on `body` so `sticky` keeps working.
+- The page is fully readable with JavaScript disabled: the intro is gated on a
+  `.js` class set before first paint, and the sections are static HTML.

@@ -1,68 +1,52 @@
 ---
-import type { Contact } from "../data/portfolio";
-import DoodleLayer from "./ui/DoodleLayer.astro";
-
-interface Props {
-  data: Contact;
-}
-
-const { data } = Astro.props as Props;
+import { contact, site } from "../data/portfolio";
 ---
 
-<section
-  id="contact"
-  class="relative z-10 flex min-h-[80vh] flex-col items-center justify-center overflow-x-clip px-6 py-32 text-center"
-  data-bg-color="#07070a"
-  aria-labelledby="contact-heading"
->
-  <DoodleLayer section="contact" />
-  <div class="relative z-20 max-w-5xl">
-    <div class="flex items-center justify-center gap-4 mb-8" data-animate>
-      <span class="mono-label-accent">// 05</span>
+<section id="contact" data-section class="px-5 py-14 md:px-8 md:py-24">
+  <div class="mx-auto max-w-[1500px]">
+    <div class="section-label mb-8 md:mb-12">
+      <span aria-hidden="true">05</span>
+      <h2 class="mono-label">{contact.title}</h2>
+      <span class="ml-auto text-ink/90">OPEN</span>
     </div>
 
-    <h2
-      id="contact-heading"
-      class="font-sans text-5xl md:text-7xl font-black text-ash leading-[0.95] tracking-tight mb-8"
-      data-animate
-    >
-      {data.title}
-    </h2>
-
-    <p class="font-sans text-base md:text-lg text-smoke max-w-xl mx-auto mb-16" data-animate>
-      {data.intro}
+    <p class="display display-l max-w-[20ch] text-balance" data-web>
+      Send the hard problem.
     </p>
 
-    <a
-      href={`mailto:${data.email}`}
-      data-magnetic
-      data-cursor-text="CLICK"
-      class="inline-block font-sans text-2xl md:text-4xl font-bold text-ash hover:text-accent transition-colors duration-300 tracking-tight break-all"
-      data-animate
-    >
-      {data.email}
-    </a>
+    <div class="mt-12 grid gap-10 md:mt-16 md:grid-cols-12 md:gap-6">
+      <div class="md:col-span-6 flex flex-col gap-6">
+        <p class="max-w-[52ch] text-[15px] leading-[1.6] md:text-base">{contact.intro}</p>
 
-    <div class="mt-16 flex justify-center flex-wrap gap-4">
-      {
-        data.links.map((link) => (
-          <a
-            href={link.href}
-            target={link.href.startsWith("http") ? "_blank" : undefined}
-            rel="noopener noreferrer"
-            data-magnetic
-            class="link-lift btn-hover font-mono text-xs uppercase tracking-[0.2em] text-ash px-6 py-3 border border-inkLine"
-            data-cursor="hover"
-          >
-            {link.label}
-          </a>
-        ))
-      }
+        <a
+          href={`mailto:${contact.email}`}
+          class="display display-m link-underline self-start break-all lowercase"
+        >
+          {contact.email}
+        </a>
+      </div>
+
+      <div class="md:col-span-4 md:col-start-9 flex flex-col gap-4">
+        <p class="mono-label border-b border-ink pb-2 text-ink/90">Elsewhere</p>
+        <ul class="flex flex-col gap-2">
+          {
+            contact.links.map((l) => (
+              <li>
+                <a
+                  href={l.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="mono-label link-underline inline-flex items-baseline gap-2"
+                >
+                  <span>{l.label}</span>
+                  <span aria-hidden="true" class="text-ink/90">↗</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+        <p class="mono-label mt-4 text-ink/90">{site.company} · {site.role}</p>
+      </div>
     </div>
   </div>
-
-  <!-- Amber accent line drawn on scroll -->
-  <svg class="absolute bottom-0 left-0 w-full h-px" viewBox="0 0 100 1" preserveAspectRatio="none">
-    <path d="M0 0.5 H100" stroke="#f59e0b" stroke-width="0.5" data-draw="true" />
-  </svg>
 </section>

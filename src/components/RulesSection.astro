@@ -1,0 +1,33 @@
+---
+import { principles } from "../data/portfolio";
+---
+
+<section id="rules" data-section class="border-b border-ink px-5 py-12 md:px-8 md:py-20">
+  <div class="mx-auto max-w-[1500px]">
+    <div class="section-label mb-8 md:mb-12">
+      <span aria-hidden="true">03</span>
+      <h2 class="mono-label">Rules</h2>
+      <span class="ml-auto text-ink/90">HOW THE WORK GETS MADE</span>
+    </div>
+
+    <ul class="grid gap-0 md:grid-cols-2">
+      {
+        principles.map((p, i) => (
+          <li
+            data-web
+            class:list={[
+              "flex flex-col gap-3 border-t border-ink py-7 pr-6 md:py-9",
+              i % 2 === 1 && "md:border-l md:pl-6 md:pr-0",
+            ]}
+          >
+            <span class="mono-label text-ink/90">{p.number}</span>
+            <h3 class="display display-m max-w-[18ch]">{p.title}</h3>
+            <p class="max-w-[46ch] text-[14px] leading-[1.6] text-ink/90 md:text-[15px]">
+              {p.description}
+            </p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>

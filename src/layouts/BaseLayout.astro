@@ -1,75 +1,55 @@
 ---
 import "../styles/global.css";
-import CustomCursor from "../components/ui/CustomCursor.astro";
-import ShaderBg from "../components/ui/ShaderBg.astro";
-import GuidePath from "../components/ui/GuidePath.astro";
-import * as portfolioData from "../data/portfolio";
-
-interface NavItem {
-  label: string;
-  href: string;
-}
+import CursorWeb from "../components/ui/CursorWeb.astro";
+import IntroOverlay from "../components/ui/IntroOverlay.astro";
+import { site, navItems, contact, webLexicon } from "../data/portfolio";
 
 interface Props {
   title?: string;
   description?: string;
-  navItems?: NavItem[];
 }
 
-const {
-  title = portfolioData.site.title,
-  description = portfolioData.site.description,
-  navItems = portfolioData.navItems,
-} = Astro.props as Props;
+const { title = site.title, description = site.description } = Astro.props as Props;
 
-// `origin` is the configured deploy origin (https://baobao1044.github.io);
-// `base` is the repo-relative base path (/portfolio/). Together they keep
-// canonical, OG, sitemap, and favicon URLs correct under GitHub Pages
-// project pages — where the site is served from a sub-path, not the root.
+// Canonical and sitemap URLs must respect the GitHub Pages sub-path in `base`.
 const base = import.meta.env.BASE_URL;
 const origin = Astro.site ?? new URL("https://baobao1044.github.io");
 const canonical = new URL(Astro.url.pathname, origin).href;
-const ogImage = new URL(`${base}favicon.svg`, origin).href;
+
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "Person",
-  name: portfolioData.site.author,
+  name: site.author,
   url: canonical,
-  email: `mailto:${portfolioData.contact.email}`,
-  jobTitle: portfolioData.site.role,
-  sameAs: [
-    "https://github.com/baobao1044",
-    ...portfolioData.contact.links
-      .map((l) => l.href)
-      .filter((h) => h.startsWith("http") && !h.includes("github.com")),
-  ],
-  description: portfolioData.site.description,
+  jobTitle: site.role,
+  email: `mailto:${contact.email}`,
+  sameAs: contact.links.map((l) => l.href),
+  description: site.description,
 };
 ---
 
 <!doctype html>
-<!-- No `scroll-smooth`: Lenis owns scrolling, and a native
-     `scroll-behavior: smooth` fights it and makes anchor jumps stutter. -->
 <html lang="en" class="h-full antialiased">
   <head>
     <meta charset="utf-8" />
-    <!-- Runs before first paint so CSS can hide reveal targets and the native
-         cursor only when JS is actually alive. -->
-    <script is:inline>document.documentElement.classList.add("js");</script>
+    <!-- Set before first paint: CSS uses `.js` to decide whether the intro
+         overlay may be shown at all. -->
+    <script is:inline>
+      document.documentElement.classList.add("js");
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
-    <meta name="author" content={portfolioData.site.author} />
-    <meta name="theme-color" content="#07070a" />
+    <meta name="author" content={site.author} />
+    <meta name="theme-color" content="#ff2400" />
     <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
     <link rel="canonical" href={canonical} />
     <link rel="sitemap" href={`${base}sitemap-index.xml`} />
 
-    <!-- Open Graph / Twitter -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
-    <meta property="og:image" content={ogImage} />
+    <meta property="og:image" content={`${base}favicon.svg`} />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
@@ -77,672 +57,135 @@ const jsonLd = {
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
+
     <title>{title}</title>
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   </head>
-  <body class="relative flex min-h-full flex-col font-sans bg-ink text-ash">
-    <!-- Cinematic intro overlay -->
-    <div class="page-overlay" id="page-overlay">
-      <div class="absolute inset-0 flex flex-col items-center justify-center gap-6">
-        <span class="font-mono text-xs uppercase tracking-[0.4em] text-accent/70">
-          BaoBG
-        </span>
-        <div class="h-px w-40 origin-left bg-accent/40" id="intro-bar"></div>
-        <span class="font-mono text-[10px] uppercase tracking-[0.3em] text-smoke" id="intro-pct">0%</span>
-      </div>
-    </div>
 
-    <!-- Background stack, bottom to top: grid (z-0) → shader (z-1) → vignette
-         (z-3) → scrim (z-4) → content (main, z-10). Sections are transparent so
-         the shader is actually visible; the scrim keeps text readable over it. -->
-    <div class="grid-bg"></div>
+  <body class="relative font-sans text-ink">
+    <IntroOverlay />
 
-    <ShaderBg />
+    <!-- Words the web draws behind each section. Serialised here so the canvas
+         module reads them synchronously at boot. -->
+    <script type="application/json" id="web-lexicon" set:html={JSON.stringify(webLexicon)} />
 
-    <div class="vignette"></div>
-    <div class="bg-scrim"></div>
-    <div class="grain"></div>
+    <!-- Decorative scroll-drawn web. Fixed, z-0, sits under every section. -->
+    <CursorWeb />
 
-    <div
-      class="fixed top-0 left-0 h-[2px] w-full z-50 bg-accent origin-left scale-x-0"
-      id="progress-bar"
-    >
-    </div>
-
-    <CustomCursor />
-    <GuidePath />
-
-    <!-- `lg:pl-24` reserves the gutter the fixed GuidePath rail occupies at the
-         left edge; without it the logo and section labels print on top of the
-         rail's "// start", "// trace" annotations. -->
-    <header class="site-header fixed top-0 z-40 w-full px-6 lg:pl-24 py-6 md:py-8" id="main-header">
-      <nav class="mx-auto flex max-w-[1400px] items-center justify-between">
-        <a
-          href={base}
-          data-magnetic
-          class="font-mono text-base font-bold tracking-tight text-ash hover:text-accent transition-colors duration-300"
-          data-cursor="hover"
+    <div class="relative z-10 flex min-h-screen flex-col">
+      <header class="site-header">
+        <nav
+          class="mx-auto flex max-w-[1500px] items-baseline justify-between gap-6 px-5 py-5 md:px-8 md:py-6"
+          aria-label="Primary"
         >
-          BaoBG<span class="text-accent">.</span>
-        </a>
+          <a href={`${base}`} class="mono-label font-bold tracking-[0.34em] link-underline">
+            BAOBG
+          </a>
 
-        <!-- Desktop nav -->
-        <ul class="hidden md:flex gap-8 text-[11px] font-mono uppercase tracking-[0.25em] text-smoke">
-          {navItems.map((item: NavItem) => (
-            <li>
-              <a
-                href={item.href}
-                class="nav-link hover:text-ash transition-colors duration-300"
-                data-cursor="hover"
-              >
-                {item.label}
+          <ul class="hidden items-baseline gap-7 md:flex">
+            {navItems.map((item) => (
+              <li>
+                <a href={item.href} class="mono-label link-underline hover:text-ink/90">
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+
+          <a
+            href={`mailto:${contact.email}`}
+            class="mono-label hidden text-ink/90 transition-opacity hover:opacity-100 md:block link-underline"
+          >
+            {contact.email}
+          </a>
+
+          <button
+            id="mobile-toggle"
+            type="button"
+            aria-label="Open menu"
+            aria-expanded="false"
+            aria-controls="mobile-panel"
+            class="mono-label md:hidden"
+          >
+            Menu
+          </button>
+        </nav>
+
+        <div id="mobile-panel" class="mobile-panel md:hidden" hidden>
+          <ul class="flex flex-col gap-1 px-5 pb-8">
+            {navItems.map((item, i) => (
+              <li class="border-t hairline">
+                <a
+                  href={item.href}
+                  class="mobile-link flex items-baseline justify-between py-3"
+                >
+                  <span class="display display-m">{item.label}</span>
+                  <span class="mono-label text-ink/90">0{i + 1}</span>
+                </a>
+              </li>
+            ))}
+            <li class="border-t hairline pt-4">
+              <a href={`mailto:${contact.email}`} class="mono-label link-underline">
+                {contact.email}
               </a>
             </li>
-          ))}
-        </ul>
+          </ul>
+        </div>
+      </header>
 
-        <!-- Mobile menu button -->
-        <button
-          id="mobile-toggle"
-          aria-label="Toggle menu"
-          aria-expanded="false"
-          class="md:hidden flex flex-col gap-[5px] z-50 p-2"
-          data-cursor="hover"
+      <main class="flex-grow">
+        <slot />
+      </main>
+
+      <footer class="border-t border-ink px-5 py-8 md:px-8">
+        <div
+          class="mx-auto flex max-w-[1500px] flex-col gap-3 md:flex-row md:items-baseline md:justify-between"
         >
-          <span class="block w-6 h-[2px] bg-ash transition-all duration-300" id="bar1"></span>
-          <span class="block w-6 h-[2px] bg-ash transition-all duration-300" id="bar2"></span>
-          <span class="block w-6 h-[2px] bg-ash transition-all duration-300" id="bar3"></span>
-        </button>
-      </nav>
-
-      <!-- Mobile slide-in panel -->
-      <div
-        id="mobile-panel"
-        class="md:hidden fixed inset-0 z-40 flex flex-col items-center justify-center gap-8 bg-ink/95 backdrop-blur-xl translate-x-full transition-transform duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] pointer-events-none"
-      >
-        {navItems.map((item: NavItem) => (
-          <a
-            href={item.href}
-            class="mobile-link font-sans text-3xl font-bold text-ash hover:text-accent transition-colors duration-300"
-            data-cursor="hover"
-          >
-            {item.label}
-          </a>
-        ))}
-      </div>
-    </header>
-
-    <main class="flex-grow relative z-10 lg:pl-24">
-      <slot />
-    </main>
-
-    <footer class="bg-ink border-t border-inkLine py-12 text-center relative z-20">
-      <p class="font-mono text-[11px] uppercase tracking-[0.4em] text-smoke">
-        <span class="text-accent">//</span> &copy; {new Date().getFullYear()} {portfolioData.site.author}
-      </p>
-      <p class="mt-3 font-mono text-[10px] uppercase tracking-[0.3em] text-mute">
-        Built with Astro + Anime.js
-      </p>
-    </footer>
+          <p class="mono-label">© {new Date().getFullYear()} {site.author}</p>
+          <p class="mono-label text-ink/90">{site.role} · {site.company}</p>
+          <p class="mono-label text-ink/90">No trackers · No analytics · Static HTML</p>
+        </div>
+      </footer>
+    </div>
 
     <script>
-      import Lenis from "lenis";
-      import {
-        animate,
-        createTimeline,
-        stagger,
-        ease,
-        splitChars,
-        countUp,
-        magnetic,
-        revealOnScroll,
-        scrubParallax,
-        toggleOnScroll,
-        bgMorphOnScroll,
-        onGlobalScroll,
-        liveText,
-      } from "../lib/anime";
+      import { initIntro } from "../lib/intro";
+      import { initCursorWeb } from "../lib/cursorWeb";
+      // Serialised at build time so the client bundle carries no data import.
+      const LEXICON: string[] = JSON.parse(document.getElementById("web-lexicon")?.textContent ?? "[]");
 
-      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const isTouch = window.matchMedia("(pointer: coarse)").matches;
+      initIntro();
 
-      // ── Lenis smooth scroll (single rAF loop, fixed dual-loop bug) ──
-      const lenis = new Lenis({
-        duration: 1.2,
-        easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-        smoothWheel: true,
-        touchMultiplier: 2,
-      });
-      function raf(time: number) {
-        lenis.raf(time);
-        requestAnimationFrame(raf);
-      }
-      requestAnimationFrame(raf);
+      const canvas = document.getElementById("cursor-web") as HTMLCanvasElement | null;
+      if (canvas) initCursorWeb(canvas, LEXICON);
 
-      // ── Cinematic intro loader ──
-      const overlay = document.getElementById("page-overlay");
-      const introBar = document.getElementById("intro-bar");
-      const introPct = document.getElementById("intro-pct");
-      if (overlay) {
-        if (reduced) {
-          animate(overlay, { opacity: 0, duration: 200, onComplete: () => overlay.remove() });
-        } else {
-          // progress bar grows + percent counts to 100
-          if (introBar) animate(introBar, { scaleX: [0, 1], duration: 1200, ease: ease.outQuart });
-          if (introPct) {
-            const obj = { v: 0 };
-            animate(obj, {
-              v: 100,
-              duration: 1200,
-              ease: ease.outQuart,
-              onUpdate: () => (introPct.textContent = `${Math.round(obj.v)}%`),
-              onComplete: () => {
-                // sweep overlay up to reveal page
-                animate(overlay, {
-                  yPercent: -100,
-                  duration: 800,
-                  ease: ease.inOut3,
-                  delay: 100,
-                  onComplete: () => overlay.remove(),
-                });
-              },
-            });
-          } else {
-            animate(overlay, {
-              yPercent: -100,
-              duration: 800,
-              ease: ease.inOut3,
-              delay: 1200,
-              onComplete: () => overlay.remove(),
-            });
+      const toggle = document.getElementById("mobile-toggle");
+      const panel = document.getElementById("mobile-panel");
+      if (toggle && panel) {
+        const setOpen = (open: boolean) => {
+          panel.hidden = !open;
+          toggle.setAttribute("aria-expanded", String(open));
+          toggle.textContent = open ? "Close" : "Menu";
+        };
+        toggle.addEventListener("click", () => {
+          setOpen(panel.hidden);
+        });
+        panel.addEventListener("click", (e) => {
+          if ((e.target as HTMLElement).closest("a")) setOpen(false);
+        });
+        window.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" && !panel.hidden) {
+            setOpen(false);
+            (toggle as HTMLButtonElement).focus();
           }
-        }
-      }
-
-      // ── Hero entrance (split-text stagger) ──
-      const heroEls = ["subtitle", "title", "desc", "buttons", "stats", "scroll"]
-        .map((k) => document.querySelector(`[data-hero="${k}"]`))
-        .filter(Boolean) as HTMLElement[];
-      if (heroEls.length > 0) {
-        // split the hero headline for per-char reveal
-        const heroTitle = document.querySelector<HTMLElement>('[data-hero="title"]');
-        let chars: HTMLElement[] = [];
-        if (heroTitle && !reduced) {
-          // Split into WORDS first, then chars inside each word. Splitting
-          // straight to inline-block chars lets the browser break a line
-          // between any two of them, which shredded the headline mid-word
-          // ("Reason without l / anguage.").
-          //
-          // Each char also gets an inner span: the entrance timeline animates
-          // the outer one while liveText() animates the inner one, so the two
-          // never fight over the same inline `transform`.
-          const text = (heroTitle.textContent || "").trim();
-          heroTitle.innerHTML = "";
-          const frag = document.createDocumentFragment();
-          text.split(/\s+/).forEach((word, wi, arr) => {
-            const w = document.createElement("span");
-            w.className = "split-word";
-            for (const ch of word) {
-              const c = document.createElement("span");
-              c.className = "split-char";
-              const inner = document.createElement("span");
-              inner.className = "split-char-inner";
-              inner.textContent = ch;
-              c.appendChild(inner);
-              w.appendChild(c);
-            }
-            frag.appendChild(w);
-            if (wi < arr.length - 1) frag.appendChild(document.createTextNode(" "));
-          });
-          heroTitle.appendChild(frag);
-          chars = Array.from(heroTitle.querySelectorAll(".split-char"));
-        }
-
-        // initial hidden state
-        const nonTitle = heroEls.filter((e) => e.dataset.hero !== "title");
-        animate(nonTitle, { opacity: [0, 0], y: 40, duration: 0 });
-        // Plain y offset rather than yPercent:120 — that needed an
-        // `overflow: hidden` mask on the h1, which clipped descenders and the
-        // headline's idle float.
-        if (chars.length) animate(chars, { opacity: 0, y: 44, rotateZ: 6, duration: 0 });
-
-        const tl = createTimeline({ defaults: { ease: ease.outExpo } });
-        if (chars.length) {
-          tl.add(
-            animate(chars, {
-              opacity: [0, 1],
-              y: [44, 0],
-              rotateZ: [6, 0],
-              duration: 900,
-              delay: stagger(28, { start: 700 }),
-            }),
-            700,
-          );
-        }
-        nonTitle.forEach((el, i) => {
-          tl.add(
-            animate(el, {
-              opacity: [0, 1],
-              y: [40, 0],
-              duration: 800,
-              delay: i * 120,
-            }),
-            chars.length ? 1200 + i * 120 : 700 + i * 120,
-          );
         });
-
-        // ── Make hero headline "live": continuous float + mouse reaction ──
-        // Starts only after the entrance has finished, and drives the inner
-        // spans, so it never overwrites the timeline's transforms mid-flight.
-        if (heroTitle && chars.length && !reduced) {
-          const entranceMs = 700 + chars.length * 28 + 900;
-          setTimeout(() => {
-            liveText(heroTitle, { amp: 3, speed: 1.1, mouseRadius: 180, mouseStrength: 14 });
-          }, entranceMs);
-        }
-      }
-
-      // ── Progress bar + header backdrop (single global scroll loop) ──
-      const progressBar = document.getElementById("progress-bar");
-      const header = document.getElementById("main-header");
-      onGlobalScroll(() => {
-        const st = document.documentElement.scrollTop || document.body.scrollTop;
-        if (progressBar) {
-          const h = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-          progressBar.style.transform = `scaleX(${h > 0 ? st / h : 0})`;
-        }
-        header?.classList.toggle("scrolled", st > 40);
-      });
-
-      // ── Scroll-triggered fade-up reveals ──
-      // The hidden start state lives in CSS (`html.js [data-animate]`), so the
-      // element is never painted visible and then yanked back to opacity 0 —
-      // that was the flicker where content appeared, vanished, then slid in.
-      const revealEls = document.querySelectorAll<HTMLElement>("[data-animate]");
-      revealEls.forEach((el, i) => {
-        if (reduced) {
-          el.style.opacity = "1";
-          el.style.transform = "none";
-          return;
-        }
-        revealOnScroll(
-          el,
-          () => {
-            animate(el, {
-              opacity: [0, 1],
-              y: [48, 0],
-              duration: 900,
-              ease: ease.outExpo,
-              delay: (i % 4) * 80,
-            });
-          },
-          { threshold: 0, rootMargin: "0px 0px -12% 0px" },
-        );
-      });
-
-      // ── Split-text reveal for section headings ──
-      const splitHeadings = document.querySelectorAll<HTMLElement>("[data-split-text]");
-      splitHeadings.forEach((el) => {
-        if (reduced) {
-          el.classList.add("is-split");
-          return;
-        }
-        revealOnScroll(
-          el,
-          () => {
-            const c = splitChars(el);
-            // Unhide only after splitText has rewritten the DOM, so the reflow
-            // happens while the heading is still invisible.
-            el.classList.add("is-split");
-            animate(c, {
-              opacity: [0, 1],
-              y: [40, 0],
-              duration: 700,
-              ease: ease.outExpo,
-              delay: stagger(20),
-            });
-          },
-          { threshold: 0, rootMargin: "0px 0px -12% 0px" },
-        );
-      });
-
-      // ── Parallax (multi-layer) ──
-      const parallaxEls = document.querySelectorAll<HTMLElement>("[data-parallax]");
-      parallaxEls.forEach((el) => {
-        const speed = parseFloat(el.dataset.parallax || "0.25");
-        scrubParallax(el, speed);
-      });
-
-      // ── Number counters ──
-      const counters = document.querySelectorAll<HTMLElement>("[data-count]");
-      counters.forEach((el) => {
-        const to = parseFloat(el.dataset.count || "0");
-        revealOnScroll(el, () => countUp(el, to, { duration: 1500 }), {
-          threshold: 0.4,
-        });
-      });
-
-      // ── Magnetic elements ──
-      const magneticEls = document.querySelectorAll<HTMLElement>("[data-magnetic]");
-      magneticEls.forEach((el) => magnetic(el, 0.35));
-
-      // ── Project cards: cursor tilt + spotlight ──
-      // Gives the cards a light source and a sense of being physical objects
-      // instead of flat rectangles. Pointer-driven, so nothing runs at idle.
-      if (!reduced && !isTouch) {
-        document.querySelectorAll<HTMLElement>(".project-h-card").forEach((card) => {
-          let queued: { x: number; y: number } | null = null;
-          let frame = 0;
-
-          const apply = () => {
-            frame = 0;
-            if (!queued) return;
-            const { x, y } = queued;
-            queued = null;
-            card.style.setProperty("--mx", `${x * 100}%`);
-            card.style.setProperty("--my", `${y * 100}%`);
-            animate(card, {
-              rotateX: (0.5 - y) * 7,
-              rotateY: (x - 0.5) * 9,
-              duration: 420,
-              ease: ease.outQuart,
-            });
-          };
-
-          card.addEventListener("mousemove", (e) => {
-            const r = card.getBoundingClientRect();
-            queued = { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height };
-            if (!frame) frame = requestAnimationFrame(apply);
-          });
-
-          card.addEventListener("mouseleave", () => {
-            if (frame) cancelAnimationFrame(frame);
-            frame = 0;
-            queued = null;
-            animate(card, { rotateX: 0, rotateY: 0, duration: 800, ease: ease.spring });
-          });
+        window.matchMedia("(min-width: 768px)").addEventListener("change", (e) => {
+          if (e.matches) setOpen(false);
         });
       }
-
-      // ── Hero light source follows the cursor ──
-      const heroGlow = document.getElementById("hero-glow");
-      if (heroGlow && !reduced && !isTouch) {
-        const hero = document.getElementById("hero");
-        let tx = 50;
-        let ty = 42;
-        let cx = 50;
-        let cy = 42;
-        let glowRaf = 0;
-
-        const settle = () => {
-          cx += (tx - cx) * 0.07;
-          cy += (ty - cy) * 0.07;
-          heroGlow.style.setProperty("--hx", `${cx.toFixed(2)}%`);
-          heroGlow.style.setProperty("--hy", `${cy.toFixed(2)}%`);
-          // Stop once it has caught up; the next mousemove restarts the loop.
-          if (Math.abs(tx - cx) > 0.1 || Math.abs(ty - cy) > 0.1) {
-            glowRaf = requestAnimationFrame(settle);
-          } else {
-            glowRaf = 0;
-          }
-        };
-
-        window.addEventListener(
-          "mousemove",
-          (e) => {
-            const r = hero?.getBoundingClientRect();
-            if (!r || r.bottom < 0) return;
-            tx = ((e.clientX - r.left) / r.width) * 100;
-            ty = ((e.clientY - r.top) / r.height) * 100;
-            if (!glowRaf) glowRaf = requestAnimationFrame(settle);
-          },
-          { passive: true },
-        );
-      }
-
-      // ── Body background color morph on section enter ──
-      const colorSections = document.querySelectorAll<HTMLElement>("[data-bg-color]");
-      colorSections.forEach((section) => {
-        const color = section.dataset.bgColor || "#07070a";
-        bgMorphOnScroll(section, color);
-      });
-
-      // ── Stroke-to-fill text (philosophy principles) ──
-      const strokeFillEls = document.querySelectorAll<HTMLElement>("[data-stroke-fill]");
-      strokeFillEls.forEach((el) => toggleOnScroll(el, "filled", { threshold: 0.6 }));
-
-      // ── Reveal boxes (swipe) ──
-      const revealBoxes = document.querySelectorAll<HTMLElement>("[data-reveal]");
-      revealBoxes.forEach((el) => toggleOnScroll(el, "active", { threshold: 0.5, once: true }));
-
-      // ── SVG draw (amber accent paths) ──
-      // Target paths only — doodle wraps use a separate `data-draw-strokes` attr
-      // to avoid colliding with this selector (div has no getTotalLength).
-      const drawPaths = document.querySelectorAll<SVGPathElement>("path[data-draw]");
-      drawPaths.forEach((path) => {
-        const len = path.getTotalLength();
-        path.style.strokeDasharray = `${len}`;
-        path.style.strokeDashoffset = `${len}`;
-        revealOnScroll(
-          path as unknown as HTMLElement,
-          () => {
-            animate(path, {
-              strokeDashoffset: [len, 0],
-              duration: 1400,
-              ease: ease.outQuart,
-            });
-          },
-          { threshold: 0.4 },
-        );
-      });
-
-      // ── Doodles: fade in + gentle float on section enter ──
-      // (stroke-draw disabled — it broke the anime engine on first tick.
-      //  Fade-in alone keeps doodles visible without risking the engine.)
-      const doodleWraps = document.querySelectorAll<HTMLElement>(".doodle-wrap");
-      const doodleFloats: { el: HTMLElement; amp: number; phase: number }[] = [];
-      doodleWraps.forEach((wrap) => {
-        const amp = parseFloat(wrap.dataset.float || "0");
-        revealOnScroll(
-          wrap,
-          () => {
-            wrap.style.opacity = "1";
-            animate(wrap, { opacity: [0, 1], duration: 700, ease: ease.outQuart });
-          },
-          { threshold: 0.2 },
-        );
-        if (amp > 0) doodleFloats.push({ el: wrap, amp, phase: Math.random() * Math.PI * 2 });
-      });
-
-      // Shared doodle float loop (single rAF for all floating doodles)
-      if (doodleFloats.length > 0 && !reduced) {
-        const dStart = performance.now();
-        let dRaf = 0;
-        const tickDoodles = (now: number) => {
-          const t = (now - dStart) / 1000;
-          for (const f of doodleFloats) {
-            const dy = Math.sin(t * 1.1 + f.phase) * f.amp;
-            const dx = Math.cos(t * 0.8 + f.phase) * f.amp * 0.4;
-            f.el.style.transform = `translate3d(${dx.toFixed(2)}px, ${dy.toFixed(2)}px, 0)`;
-          }
-          dRaf = requestAnimationFrame(tickDoodles);
-        };
-        dRaf = requestAnimationFrame(tickDoodles);
-      }
-
-      // ── GuidePath companion: progressive draw + active node on scroll ──
-      const guidePath = document.getElementById("guide-main-path") as
-        | SVGPathElement
-        | null;
-      const guideWrap = document.getElementById("guide-path");
-      if (guidePath && guideWrap) {
-        const glen = guidePath.getTotalLength();
-        guidePath.style.strokeDasharray = `${glen}`;
-        guidePath.style.strokeDashoffset = `${glen}`;
-        // Tie dashoffset to overall page scroll progress (drawn as user scrolls down)
-        onGlobalScroll(() => {
-          const st = document.documentElement.scrollTop || document.body.scrollTop;
-          const h = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-          const p = h > 0 ? Math.min(1, Math.max(0, st / h)) : 0;
-          guidePath.style.strokeDashoffset = `${glen * (1 - p)}`;
-        });
-      }
-      // Active node + annotation: scroll-position-based (more reliable than IO band)
-      const sectionIds = ["hero", "about", "projects", "philosophy", "proof", "contact"];
-      const guideNodes = document.querySelectorAll<SVGCircleElement>(".guide-node");
-      const guideAnnos = document.querySelectorAll<SVGGElement>(".guide-anno");
-      let lastActive = "";
-      onGlobalScroll(() => {
-        const vh = window.innerHeight;
-        let current = sectionIds[0];
-        for (const id of sectionIds) {
-          const sec = document.getElementById(id);
-          if (!sec) continue;
-          const r = sec.getBoundingClientRect();
-          // section whose top is at or above viewport mid is "current"
-          if (r.top <= vh * 0.5) current = id;
-        }
-        if (current !== lastActive) {
-          lastActive = current;
-          guideNodes.forEach((n) => n.classList.remove("active"));
-          guideAnnos.forEach((a) => a.classList.remove("active"));
-          const node = document.querySelector<SVGCircleElement>(`.guide-node[data-node="${current}"]`);
-          const anno = document.querySelector<SVGGElement>(`.guide-anno[data-anno="${current}"]`);
-          node?.classList.add("active");
-          anno?.classList.add("active");
-        }
-      });
-      // Trigger an initial measurement
-      window.dispatchEvent(new Event("scroll"));
-
-      // Lenis' own smoothed per-frame velocity. A hand-rolled delta oscillated,
-      // because scroll events and the relax loop interleave frame by frame.
-      // Lenis keeps reporting a tiny residual after the scroll visually stops,
-      // so anything under a pixel per frame counts as standing still — without
-      // that deadband the relax loop below can never reach its exit condition.
-      const scrollVelocity = () => {
-        const v = (lenis as unknown as { velocity?: number }).velocity || 0;
-        return Math.abs(v) < 1 ? 0 : v;
-      };
-
-      // ── Horizontal scroll: projects & philosophy (pinned) ──
-      // Measured against the pin WRAPPER, not the whole section. Using the
-      // section meant its title block (~470px tall) counted as scroll distance,
-      // so the track started sliding long before the sticky child pinned.
-      //
-      // The wrapper height is derived from the real track width, which keeps
-      // vertical scroll and horizontal travel 1:1 and leaves no dead screens.
-      function setupHScroll(wrap: HTMLElement) {
-        const track = document.getElementById(wrap.dataset.hscrollTrack || "");
-        const pin = wrap.querySelector<HTMLElement>(".h-scroll-pin");
-        if (!track || !pin) return;
-
-        let travel = 0;
-        const measure = () => {
-          if (window.matchMedia("(max-width: 767px)").matches) {
-            wrap.style.height = "";
-            track.style.transform = "";
-            travel = 0;
-            return;
-          }
-          // scrollWidth omits the flex container's trailing padding, so add it
-          // back or the final card stops flush against the viewport edge.
-          const padRight = parseFloat(getComputedStyle(track).paddingLeft) || 0;
-          travel = Math.max(0, track.scrollWidth + padRight - pin.clientWidth);
-          wrap.style.height = `${window.innerHeight + travel}px`;
-        };
-
-        let skew = 0;
-        let raf = 0;
-
-        const render = () => {
-          if (travel <= 0) return;
-          const rect = wrap.getBoundingClientRect();
-          const distance = rect.height - window.innerHeight;
-          if (distance <= 0) return;
-          // Always clamp and always write: the old version skipped the update
-          // once the section bottom passed, freezing the track short of its end
-          // so the last card never fully arrived.
-          const p = Math.min(1, Math.max(0, -rect.top / distance));
-          const x = -travel * p;
-          // Lean into the direction of travel, then relax — reads as inertia
-          // rather than a value being assigned to a transform. Taken from
-          // Lenis' own smoothed velocity; a hand-rolled per-frame delta
-          // oscillated because scroll events and the relax loop interleave.
-          const v = reduced ? 0 : scrollVelocity();
-          const target = Math.max(-4, Math.min(4, v * 0.045));
-          skew += (target - skew) * 0.18;
-          if (Math.abs(skew) < 0.05) skew = 0;
-          track.style.transform = `translate3d(${x}px, 0, 0) skewX(${skew.toFixed(2)}deg)`;
-        };
-
-        // Scroll events stop the instant the wheel does, so the lean needs its
-        // own loop to unwind or the cards stay permanently skewed. The loop
-        // owns all rendering and exits only once both the lean and the scroll
-        // velocity have actually settled.
-        const loop = () => {
-          render();
-          raf = skew !== 0 || scrollVelocity() !== 0 ? requestAnimationFrame(loop) : 0;
-        };
-        const update = () => {
-          if (!raf) raf = requestAnimationFrame(loop);
-        };
-
-        measure();
-        update();
-        window.addEventListener("resize", () => {
-          measure();
-          update();
-        }, { passive: true });
-        onGlobalScroll(update);
-      }
-      document
-        .querySelectorAll<HTMLElement>("[data-hscroll-track]")
-        .forEach(setupHScroll);
-
-      // ── Anchor links go through Lenis ──
-      // Native anchor jumps bypass the smooth-scroll instance and teleport.
-      document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]').forEach((a) => {
-        a.addEventListener("click", (e) => {
-          const id = a.getAttribute("href");
-          if (!id || id === "#") return;
-          const target = document.querySelector(id);
-          if (!target) return;
-          e.preventDefault();
-          lenis.scrollTo(target as HTMLElement, { offset: -80, duration: 1.4 });
-        });
-      });
-
-      // ── Mobile nav toggle ──
-      const mobileToggle = document.getElementById("mobile-toggle");
-      const mobilePanel = document.getElementById("mobile-panel");
-      const bar1 = document.getElementById("bar1");
-      const bar2 = document.getElementById("bar2");
-      const bar3 = document.getElementById("bar3");
-      let menuOpen = false;
-      const setMenu = (open: boolean) => {
-        menuOpen = open;
-        if (mobileToggle) mobileToggle.setAttribute("aria-expanded", String(open));
-        if (mobilePanel) {
-          mobilePanel.style.transform = open ? "translateX(0)" : "translateX(100%)";
-          mobilePanel.style.pointerEvents = open ? "auto" : "none";
-        }
-        if (bar1) bar1.style.transform = open ? "translateY(7px) rotate(45deg)" : "";
-        if (bar2) bar2.style.opacity = open ? "0" : "1";
-        if (bar3) bar3.style.transform = open ? "translateY(-7px) rotate(-45deg)" : "";
-      };
-      mobileToggle?.addEventListener("click", () => setMenu(!menuOpen));
-      document.querySelectorAll(".mobile-link").forEach((a) =>
-        a.addEventListener("click", () => setMenu(false)),
-      );
-
-      // ── Keyboard: ESC closes mobile menu ──
-      window.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && menuOpen) setMenu(false);
-      });
     </script>
   </body>
 </html>

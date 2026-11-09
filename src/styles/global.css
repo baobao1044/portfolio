@@ -2,442 +2,249 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Tokens ──────────────────────────────────────────────────────────────── */
+:root {
+  --ink: #0a0a0a;
+  --red: #ff2400;
+  --bone: #f5f2ec;
+  --hair: rgba(10, 10, 10, 0.14);
+  --ease-cut: cubic-bezier(0.82, 0, 0.18, 1);
+}
+
 @layer base {
   html {
-    background-color: #07070a;
+    background-color: var(--ink);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
   }
-
-  /* The custom cursor replaces the native one, so only hide the native pointer
-     once JS has actually booted — otherwise a script failure leaves the page
-     with no cursor at all. `.js` is set by an inline script in <head>. */
-  html.js,
-  html.js body {
-    cursor: none;
-  }
-  @media (pointer: coarse) {
-    html.js,
-    html.js body { cursor: auto; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
   }
 
   body {
-    @apply font-sans text-ash bg-ink;
-    background-color: #07070a;
+    @apply font-sans text-ink;
+    background-color: var(--red);
     min-height: 100vh;
-    /* `clip`, not `hidden`: `overflow-x: hidden` forces `overflow-y` to `auto`,
-       making <body> a scroll container and breaking every descendant sticky. */
+    /* `clip` rather than `hidden`: `hidden` makes body a scroll container and
+       breaks `position: sticky` descendants. */
     overflow-x: clip;
   }
 
-  /* Lenis owns scrolling; a native smooth scroll-behavior fights it. */
-  html.lenis,
-  html.lenis body {
-    height: auto;
-  }
-  .lenis.lenis-smooth {
-    scroll-behavior: auto !important;
-  }
-
   ::selection {
-    background-color: #f59e0b;
-    color: #07070a;
+    background-color: var(--ink);
+    color: var(--red);
   }
 
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: #07070a;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #1c1c22;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: #f59e0b;
-  }
+  /* Scrollbar stays on palette instead of the platform default. */
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-track { background: var(--ink); }
+  ::-webkit-scrollbar-thumb { background: var(--red); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--bone); }
 
-  /* Respect reduced motion: disable scrub/parallax heavy motion */
-  @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-      animation-duration: 0.001ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.001ms !important;
-      scroll-behavior: auto !important;
-    }
+  :focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 3px;
+  }
+  .on-ink :focus-visible {
+    outline-color: var(--bone);
   }
 }
 
-@layer utilities {
-  /* ── Subtle grid background ── */
-  .grid-bg {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    background-image:
-      linear-gradient(to right, rgba(245, 158, 11, 0.04) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(245, 158, 11, 0.04) 1px, transparent 1px);
-    background-size: 64px 64px;
-    -webkit-mask-image: radial-gradient(ellipse at center, #000 30%, transparent 80%);
-    mask-image: radial-gradient(ellipse at center, #000 30%, transparent 80%);
-  }
+/* ── Display type ────────────────────────────────────────────────────────── */
+/* Anton's cap height is 0.86em and its ascent metric 1.175em. A line-height
+   below 0.86 makes consecutive capped lines physically overlap, which is what
+   a 0.84 setting did — so the tight setting stops at 0.9. */
+.display {
+  font-family: Anton, Archivo, Impact, sans-serif;
+  font-weight: 400;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
 
-  /* ── Vignette (subtle, ink) ──
-     Sits above the shader canvas but BELOW page content (main is z-10). At its
-     old z-9998 it tinted the text and nav too, greying out the whole page. */
-  .vignette {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 3;
-    background: radial-gradient(circle at center, transparent 45%, rgba(7, 7, 10, 0.85) 100%);
-  }
+.display-xl { font-size: clamp(3.25rem, 13.2vw, 12.5rem); }
+.display-l  { font-size: clamp(2rem, 7.4vw, 6rem); }
+.display-m  { font-size: clamp(1.6rem, 4.2vw, 3.25rem); }
 
-  /* Readability scrim between the animated shader and the content. */
-  .bg-scrim {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 4;
-    background: rgba(7, 7, 10, 0.62);
-  }
+/* Row titles carry long single-token repo names ("constant-state-attention"),
+   which cannot break at a space and would otherwise push the grid apart. */
+.display-row {
+  font-size: clamp(1.05rem, 2.1vw, 1.9rem);
+  line-height: 1.02;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
 
-  /* ── Film grain ──
-     Flat dark surfaces read as cheap because they're mathematically clean.
-     A little static noise gives the ink texture and hides gradient banding.
-     Inset -50% + a stepped shuffle so the tile edges never show. */
-  .grain {
-    position: fixed;
-    inset: -50%;
-    z-index: 5;
-    pointer-events: none;
-    opacity: 0.19;
-    mix-blend-mode: overlay;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    animation: grain-shuffle 0.7s steps(1) infinite;
-    will-change: transform;
-  }
-  @keyframes grain-shuffle {
-    0%   { transform: translate3d(0, 0, 0); }
-    12%  { transform: translate3d(-3%, -2%, 0); }
-    25%  { transform: translate3d(2%, -4%, 0); }
-    37%  { transform: translate3d(-1%, 3%, 0); }
-    50%  { transform: translate3d(3%, 1%, 0); }
-    62%  { transform: translate3d(-4%, -1%, 0); }
-    75%  { transform: translate3d(1%, 4%, 0); }
-    87%  { transform: translate3d(-2%, 2%, 0); }
-    100% { transform: translate3d(0, 0, 0); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .grain { animation: none; }
-  }
+.mono-label {
+  @apply font-mono text-[10px] uppercase;
+  letter-spacing: 0.28em;
+}
 
-  /* ── Amber bloom ──
-     The accent was only ever used as flat 1px lines and small labels, so the
-     palette never actually lit anything. These give it a light source. */
-  .bloom-sm {
-    box-shadow: 0 0 18px rgba(245, 158, 11, 0.22), 0 0 48px rgba(245, 158, 11, 0.08);
-  }
-  .bloom-text {
-    text-shadow: 0 0 22px rgba(245, 158, 11, 0.45), 0 0 60px rgba(245, 158, 11, 0.18);
-  }
-  .bloom-line {
-    box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
-  }
+.hairline { border-color: var(--hair); }
 
-  /* ── Hero light source (follows the cursor) ── */
-  .hero-glow {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background: radial-gradient(
-      620px circle at var(--hx, 50%) var(--hy, 42%),
-      rgba(245, 158, 11, 0.17),
-      rgba(245, 158, 11, 0.05) 38%,
-      transparent 68%
-    );
-  }
+/* Underline that draws in from the left on hover — a small nod to the
+   scrolling web, and the only hover effect on links. */
+/* `display` is left to Tailwind here on purpose: setting `inline-block`
+   unconditionally overrode `hidden`, so elements hidden on mobile reappeared. */
+.link-underline {
+  position: relative;
+}
+.link-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  height: 1px;
+  width: 100%;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s var(--ease-cut);
+}
+.link-underline:hover::after,
+.link-underline:focus-visible::after { transform: scaleX(1); }
 
-  /* ── Pinned horizontal-scroll section ──
-     Height is assigned by JS from the real track width so vertical scroll maps
-     1:1 onto horizontal travel. Without JS (or on mobile) it degrades to a
-     normal horizontal swipe instead of a screen-tall empty block. */
-  .h-scroll-wrap {
-    height: auto;
-  }
-  @media (max-width: 767px) {
-    .h-scroll-pin {
-      position: static;
-      height: auto;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      padding-block: 1rem 2.5rem;
-      -webkit-overflow-scrolling: touch;
-    }
-    .h-scroll-pin > div {
-      transform: none !important;
-    }
-    .h-scroll-pin > div > * {
-      scroll-snap-align: center;
-    }
-  }
+/* ── Intro overlay ───────────────────────────────────────────────────────── */
+/* Black, white type, cut fast. The overlay is removed by script; every
+   animation here is compositor-only (transform/opacity) so the intro cannot
+   drop frames while the rest of the page is still parsing. */
+#page-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--ink);
+  color: var(--bone);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  will-change: clip-path;
+}
+#page-overlay.is-done {
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path 0.62s var(--ease-cut);
+  pointer-events: none;
+}
+#page-overlay.is-gone { display: none; }
 
-  /* ── Mono label (terminal-ish, with // prefix via ::before) ── */
-  .mono-label {
-    @apply font-mono text-xs uppercase tracking-[0.3em] text-smoke;
-  }
-  .mono-label-accent {
-    @apply font-mono text-xs uppercase tracking-[0.3em] text-accent;
-    text-shadow: 0 0 18px rgba(245, 158, 11, 0.4);
-  }
+/* Intro is script-driven. With JS off or broken, the overlay must never sit on
+   top of the page as a black screen. */
+html:not(.js) #page-overlay { display: none; }
 
-  /* ── Accent divider line ── */
-  .accent-line {
-    height: 1px;
-    background: linear-gradient(90deg, transparent, #f59e0b, transparent);
-    box-shadow: 0 0 10px rgba(245, 158, 11, 0.35);
-  }
+/* Scroll is held still while the cuts play, so the web does not move under a
+   sequence the reader has not chosen to scroll yet. */
+html.intro-lock,
+html.intro-lock body {
+  overflow: hidden !important;
+}
 
-  /* ── Button micro-interactions ── */
-  .btn-hover {
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
-      box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease;
-  }
-  .btn-hover:hover {
-    transform: scale(1.04);
-    box-shadow: 0 8px 32px rgba(245, 158, 11, 0.4),
-      0 0 60px rgba(245, 158, 11, 0.22);
-  }
-  .btn-hover:active {
-    transform: scale(0.97);
-  }
+.intro-word {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: Anton, Archivo, Impact, sans-serif;
+  font-size: clamp(3rem, 17vw, 17rem);
+  line-height: 0.8;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0;
+  transform: scale(1.14);
+  animation: intro-cut 520ms var(--ease-cut) forwards;
+}
+.intro-word.inverse {
+  color: var(--ink);
+  background: var(--bone);
+  clip-path: inset(31% 0 31% 0);
+}
 
-  /* ── Fixed header backdrop ──
-     Transparent at the top of the page; once scrolled it needs a backdrop or
-     page content simply runs underneath and collides with the nav labels. */
-  .site-header {
-    transition: background-color 0.35s ease, backdrop-filter 0.35s ease,
-      border-color 0.35s ease;
-    border-bottom: 1px solid transparent;
-  }
-  .site-header.scrolled {
-    background: rgba(7, 7, 10, 0.72);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border-bottom-color: rgba(28, 28, 34, 0.9);
-  }
+@keyframes intro-cut {
+  0%   { opacity: 0; transform: scale(1.14); }
+  14%  { opacity: 1; transform: scale(1); }
+  78%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.97); }
+}
 
-  /* ── Nav link underline slide ── */
-  .nav-link {
-    position: relative;
-  }
-  .nav-link::after {
-    content: "";
-    position: absolute;
-    bottom: -4px;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background: #f59e0b;
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-  }
-  .nav-link:hover::after {
-    transform: scaleX(1);
-  }
+.intro-rule {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: var(--bone);
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: intro-rule 420ms var(--ease-cut) forwards;
+}
+@keyframes intro-rule {
+  to { transform: scaleX(1); }
+}
 
-  /* ── Glassmorphism card (dark variant) ── */
-  .glass {
-    background: rgba(14, 14, 18, 0.6);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(28, 28, 34, 0.8);
-  }
+.intro-meta {
+  position: absolute;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  opacity: 0;
+  animation: intro-meta 400ms ease forwards;
+}
+@keyframes intro-meta {
+  to { opacity: 0.72; }
+}
 
-  /* ── Page enter overlay ── */
-  .page-overlay {
-    position: fixed;
-    inset: 0;
-    background: #07070a;
-    z-index: 9999;
-    pointer-events: none;
-  }
+@media (prefers-reduced-motion: reduce) {
+  #page-overlay { display: none !important; }
+  .intro-word, .intro-rule, .intro-meta { animation: none; opacity: 1; }
+}
 
-  /* ── Reveal box (swipe reveal) ── */
-  .reveal-box {
-    position: relative;
-    overflow: hidden;
-    width: fit-content;
-    transform: translateZ(0);
-  }
-  .reveal-box::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: #f59e0b;
-    transform: translateX(-101%);
-    z-index: 10;
-  }
-  .reveal-box.active::after {
-    animation: reveal-swipe-fast 0.9s cubic-bezier(0.19, 1, 0.22, 1) forwards;
-  }
-  .reveal-box > * {
-    opacity: 0;
-    transition: opacity 0.01s 0.35s;
-  }
-  .reveal-box.active > * {
-    opacity: 1;
-  }
-  @keyframes reveal-swipe-fast {
-    0% { transform: translateX(-101%); }
-    45% { transform: translateX(0); }
-    100% { transform: translateX(101%); }
-  }
+/* ── Cursor web canvas ───────────────────────────────────────────────────── */
+#cursor-web {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+body.web-off #cursor-web { display: none; }
 
-  /* ── Horizontal project card ──
-     Transform is owned by JS (cursor tilt), so no transform here or the two
-     would overwrite each other. Only lighting is animated in CSS. */
-  .h-scroll-pin {
-    perspective: 1600px;
-  }
-  .project-h-card {
-    position: relative;
-    transform-style: preserve-3d;
-    background-color: rgba(14, 14, 18, 0.55);
-    transition: border-color 0.4s ease, box-shadow 0.45s ease,
-      background-color 0.4s ease;
-  }
-  /* Cursor spotlight. --mx/--my are written by the tilt handler. */
-  .project-h-card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.4s ease;
-    background: radial-gradient(
-      460px circle at var(--mx, 50%) var(--my, 50%),
-      rgba(245, 158, 11, 0.16),
-      transparent 62%
-    );
-  }
-  .project-h-card:hover::before {
-    opacity: 1;
-  }
-  .project-h-card:hover {
-    border-color: rgba(245, 158, 11, 0.55);
-    background-color: rgba(18, 16, 14, 0.72);
-    box-shadow: 0 24px 70px -20px rgba(0, 0, 0, 0.9),
-      0 0 42px -8px rgba(245, 158, 11, 0.28);
-  }
-  /* Keep card content above the spotlight layer. */
-  .project-h-card > * {
-    position: relative;
-    z-index: 1;
-  }
+/* ── Section chrome ──────────────────────────────────────────────────────── */
+.section-label {
+  @apply mono-label;
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--hair);
+  padding-bottom: 0.75rem;
+}
 
-  /* ── Social link hover lift ── */
-  .link-lift {
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
-      box-shadow 0.3s ease, border-color 0.3s ease, color 0.3s ease;
-  }
-  .link-lift:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 24px rgba(245, 158, 11, 0.18);
-    border-color: rgba(245, 158, 11, 0.6);
-    color: #f59e0b;
-  }
+.mobile-panel {
+  border-top: 1px solid var(--ink);
+}
 
-  /* ── Marquee ── */
-  .marquee-track {
-    display: flex;
-    overflow: hidden;
-    white-space: nowrap;
-    -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
-    mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
-  }
-  .marquee-content {
-    display: flex;
-    animation: marquee 32s linear infinite;
-  }
-  @keyframes marquee {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
-  }
+.work-row summary {
+  cursor: pointer;
+  list-style: none;
+}
+.work-row summary::-webkit-details-marker { display: none; }
+.work-row[open] .work-plus { transform: rotate(45deg); }
+.work-plus { transition: transform 0.3s var(--ease-cut); }
 
-  /* ── Stroke-to-fill text (philosophy principles) ── */
-  .stroke-fill-text {
-    color: transparent;
-    -webkit-text-stroke: 1.5px rgba(245, 158, 11, 0.55);
-    transition: color 0.6s ease, -webkit-text-stroke 0.6s ease;
-  }
-  .stroke-fill-text.filled {
-    color: #f59e0b;
-    -webkit-text-stroke: 1.5px #f59e0b;
-  }
+.work-row .row-grid {
+  transition: background-color 0.25s ease;
+}
+.work-row:hover .row-grid { background-color: rgba(245, 242, 236, 0.16); }
 
-  /* ── Animated scroll-line (hero indicator) ── */
-  .animate-scroll-line {
-    animation: scroll-line 2s ease-in-out infinite;
-    transform-origin: top;
-  }
-  @keyframes scroll-line {
-    0% { transform: scaleY(0); opacity: 0; }
-    50% { transform: scaleY(1); opacity: 1; }
-    100% { transform: scaleY(0); opacity: 0; }
-  }
+@media (prefers-reduced-motion: reduce) {
+  .link-underline::after { transition: none; }
+  .work-plus { transition: none; }
+  html { scroll-behavior: auto; }
+}
 
-  /* ── Split-text char/word spans ──
-     Words are the wrap unit. Chars are inline-block too, so without a word
-     wrapper the browser happily breaks a line between any two letters. */
-  .split-word {
-    display: inline-block;
-    white-space: nowrap;
-  }
-  .split-char,
-  .split-char-inner {
-    display: inline-block;
-    will-change: transform, opacity;
-  }
-
-  /* ── Cursor targets ── */
-  html.js [data-cursor="hover"],
-  html.js a,
-  html.js button {
-    cursor: none;
-  }
-
-  /* ── Scroll-reveal initial state ──
-     Must be declared in CSS, not by JS on intersect. Setting opacity:0 from the
-     observer means the element is painted first and only then yanked away, so
-     the user watches content appear, vanish, and slide back in. The `.js` guard
-     keeps everything visible if the script never runs. */
-  html.js [data-animate] {
-    opacity: 0;
-    transform: translateY(48px);
-    will-change: transform, opacity;
-  }
-  html.js [data-split-text] {
-    opacity: 0;
-  }
-  html.js [data-split-text].is-split {
-    opacity: 1;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    html.js [data-animate],
-    html.js [data-split-text] {
-      opacity: 1;
-      transform: none;
-    }
-  }
+/* ── Print ───────────────────────────────────────────────────────────────── */
+@media print {
+  #page-overlay, #cursor-web, .no-print { display: none !important; }
+  body { background: #fff; color: #000; }
 }

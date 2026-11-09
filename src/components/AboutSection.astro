@@ -1,80 +1,32 @@
 ---
-import type { About } from "../data/portfolio";
-import DoodleLayer from "./ui/DoodleLayer.astro";
-
-interface Props {
-  data: About;
-}
-
-const { data } = Astro.props as Props;
+import { about } from "../data/portfolio";
 ---
 
-<!-- `overflow-x-clip`, not `overflow-hidden`: `hidden` would turn this section into a
-     scroll container and break the `md:sticky` highlights panel below. -->
-<section
-  id="about"
-  class="relative py-32 md:py-48 overflow-x-clip"
-  data-bg-color="#07070a"
->
-  <DoodleLayer section="about" />
-  <div class="max-w-[1400px] mx-auto px-6">
-
-    <!-- Section label -->
-    <div class="flex items-center gap-4 mb-16" data-animate>
-      <span class="mono-label-accent">// 01 {data.title}</span>
-      <div class="accent-line flex-1 max-w-[200px]"></div>
+<section id="about" data-section class="border-b border-ink px-5 py-12 md:px-8 md:py-20">
+  <div class="mx-auto max-w-[1500px]">
+    <div class="section-label mb-8 md:mb-12">
+      <span aria-hidden="true">01</span>
+      <h2 class="mono-label">{about.title}</h2>
+      <span class="ml-auto text-ink/90">WHO</span>
     </div>
 
-    <div class="grid md:grid-cols-12 gap-10 md:gap-16 items-start">
-      <!-- Left: lead + paragraphs -->
-      <div class="md:col-span-7">
-        <h2
-          class="font-sans text-3xl md:text-5xl font-bold text-ash leading-tight tracking-tight mb-10"
-          data-animate
-        >
-          {data.lead}
-        </h2>
+    <p class="display display-l max-w-[24ch] text-balance" data-web>{about.lead}</p>
 
-        <div class="space-y-6 max-w-2xl">
-          {
-            data.paragraphs.map((p) => (
-              <p
-                class="font-sans text-base md:text-lg text-smoke leading-relaxed"
-                data-animate
-              >
-                {p}
-              </p>
-            ))
-          }
-        </div>
+    <div class="mt-12 grid gap-10 md:mt-16 md:grid-cols-12 md:gap-6">
+      <div class="md:col-span-7 flex flex-col gap-5">
+        {about.paragraphs.map((p) => (
+          <p class="max-w-[62ch] text-[15px] leading-[1.6] md:text-base">{p}</p>
+        ))}
       </div>
 
-      <!-- Right: highlights panel -->
-      <div class="md:col-span-5 md:sticky md:top-32">
-        <div class="glass p-8 md:p-10" data-animate>
-          <span class="mono-label block mb-6">// Focus areas</span>
-          <ul class="space-y-5">
-            {
-              data.highlights.map((h, i) => (
-                <li class="flex items-start gap-4 group">
-                  <span class="font-mono text-accent text-sm pt-1 tabular-nums">
-                    0{i + 1}
-                  </span>
-                  <span class="font-sans text-lg md:text-xl font-medium text-ash group-hover:text-accent transition-colors duration-300">
-                    {h}
-                  </span>
-                </li>
-              ))
-            }
-          </ul>
-
-          <div class="accent-line mt-8 opacity-50"></div>
-
-          <p class="mono-label mt-6">
-            <span class="text-accent">//</span> Rust · Python · Go · C++ · TypeScript
-          </p>
-        </div>
-      </div>
+      <dl class="md:col-span-4 md:col-start-9 flex flex-col gap-5 border-t border-ink pt-5">
+        {about.facts.map((f) => (
+          <div class="flex flex-col gap-1 border-b hairline pb-4">
+            <dt class="mono-label text-ink/90">{f.key}</dt>
+            <dd class="text-[14px] leading-snug md:text-[15px]">{f.value}</dd>
+          </div>
+        ))}
+      </dl>
     </div>
   </div>
 </section>

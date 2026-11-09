@@ -1,0 +1,106 @@
+---
+import { projects } from "../data/portfolio";
+
+const groups = [
+  { key: "AI", label: "AI & model research" },
+  { key: "COMPILERS", label: "Compilers & runtimes" },
+  { key: "SYSTEMS", label: "Systems & graphics" },
+  { key: "TOOLS", label: "Tools & security" },
+] as const;
+---
+
+<section id="work" data-section class="border-b border-ink px-5 py-12 md:px-8 md:py-20">
+  <div class="mx-auto max-w-[1500px]">
+    <div class="section-label mb-8 md:mb-12">
+      <span aria-hidden="true">02</span>
+      <h2 class="mono-label">Work</h2>
+      <span class="ml-auto text-ink/90">{projects.length} BUILDS · ALL PUBLIC</span>
+    </div>
+
+    <p class="display display-l max-w-[22ch] text-balance" data-web>
+      Ten repositories, each with its own measurements.
+    </p>
+
+    <div class="mt-12 flex flex-col gap-10 md:mt-16 md:gap-14">
+      {
+        groups.map((g) => {
+          const items = projects.filter((p) => p.domain === g.key);
+          if (!items.length) return null;
+          return (
+            <div class="flex flex-col gap-2">
+              <h3 class="mono-label border-b border-ink pb-2 text-ink/90">{g.label}</h3>
+
+              <ul class="flex flex-col">
+                {items.map((p) => (
+                  <li>
+                    <details class="work-row border-b hairline">
+                      <summary class="row-grid grid grid-cols-12 items-baseline gap-3 px-1 py-5 md:gap-4">
+                        <span class="col-span-1 mono-label text-ink/90">{p.index}</span>
+
+                        <h4 class="col-span-9 display display-row break-words md:col-span-5">{p.title}</h4>
+
+                        <span class="hidden md:col-span-4 md:block text-[13px] leading-snug text-ink/85">
+                          {p.oneLiner}
+                        </span>
+
+                        <span class="col-span-2 flex items-baseline justify-end gap-3 md:col-span-2">
+                          <span class="mono-label text-ink/90">
+                            {p.status.toUpperCase()}
+                          </span>
+                          <span class="work-plus mono-label text-base leading-none" aria-hidden="true">
+                            +
+                          </span>
+                        </span>
+
+                        <span class="col-span-10 col-start-2 mt-1 text-[13px] leading-snug text-ink/85 md:hidden">
+                          {p.oneLiner}
+                        </span>
+                      </summary>
+
+                      <div class="grid gap-8 px-1 pb-8 md:grid-cols-12 md:gap-6">
+                        <div class="md:col-span-7 flex flex-col gap-4">
+                          <p class="max-w-[68ch] text-[15px] leading-[1.6]">{p.description}</p>
+
+                          <ul class="flex flex-col gap-1.5">
+                            {p.facts.map((f) => (
+                              <li class="flex gap-3 text-[13px] leading-snug">
+                                <span aria-hidden="true" class="text-ink/90">—</span>
+                                <span>{f}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <div class="md:col-span-4 md:col-start-9 flex flex-col gap-4">
+                          <div>
+                            <p class="mono-label mb-2 text-ink/90">Stack</p>
+                            <ul class="flex flex-wrap gap-1.5">
+                              {p.stack.map((s) => (
+                                <li class="mono-label border border-ink px-2 py-1 text-[9px] tracking-[0.18em]">
+                                  {s}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          <a
+                            href={p.repo}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="mono-label link-underline self-start break-all"
+                          >
+                            {p.repo.replace("https://github.com/", "github.com/")}
+                          </a>
+                        </div>
+                      </div>
+                    </details>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })
+      }
+    </div>
+  </div>
+</section>

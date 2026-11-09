@@ -1,0 +1,50 @@
+---
+import { evidence } from "../data/portfolio";
+---
+
+<section id="evidence" data-section class="border-b border-ink px-5 py-12 md:px-8 md:py-20">
+  <div class="mx-auto max-w-[1500px]">
+    <div class="section-label mb-8 md:mb-12">
+      <span aria-hidden="true">04</span>
+      <h2 class="mono-label">Evidence</h2>
+      <span class="ml-auto text-ink/90">WHAT EACH CLAIM RESTS ON</span>
+    </div>
+
+    <p class="display display-l max-w-[26ch] text-balance" data-web>
+      Numbers first, adjectives never.
+    </p>
+
+    <ul class="mt-10 flex flex-col md:mt-14">
+      {
+        evidence.map((e) => (
+          <li class="border-t hairline last:border-b">
+            <a
+              href={e.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="group grid grid-cols-12 items-baseline gap-x-3 gap-y-1 py-4 transition-colors hover:bg-bone/15 md:gap-4 md:py-3"
+            >
+              <span class="col-span-12 mono-label md:col-span-3">{e.left}</span>
+              <span class="col-span-12 text-[14px] leading-snug md:col-span-5">{e.right}</span>
+              <span class="col-span-11 mono-label text-[9px] tracking-[0.16em] text-ink/90 md:col-span-4">
+                {e.basis}
+              </span>
+              <span
+                aria-hidden="true"
+                class="col-span-1 justify-self-end mono-label text-ink/90 transition-opacity group-hover:opacity-100"
+              >
+                ↗
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <p class="mono-label mt-8 max-w-[70ch] leading-relaxed text-ink/90">
+      Every figure above is quoted from the repository it links to, read 2026-11-09. Where a
+      README describes its own project as research or alpha, that status is shown in the work
+      list rather than smoothed over.
+    </p>
+  </div>
+</section>
