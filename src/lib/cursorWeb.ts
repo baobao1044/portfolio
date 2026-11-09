@@ -379,6 +379,12 @@ function progressFor(c: Cursor, scrollY: number, vh: number): number {
   return Math.min(1, Math.max(0, p));
 }
 
+// Cursor state that survives a frame: the progress actually on screen lags the
+// progress the scroll position implies, so a fast flick does not teleport the
+// pen across the page. `target` is only read when the pen is not drawing, so a
+// consuming cursor still halts mid-unit and resumes from the same place.
+type Lead = { disp: number; target: number };
+
 // ── Draw ─────────────────────────────────────────────────────────────────────
 
 const INK = "#0a0a0a";
@@ -392,8 +398,10 @@ export function initCursorWeb(canvas: HTMLCanvasElement, lexicon: string[] = [])
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
   let state: State | null = null;
   let dpr = 1;
-  let queued = false;
   let live = false;
+  // One lead per cursor, keyed by band order. Rebuilt with the cursors.
+  let leads: Lead[] = [];
+  let raf = 0;
 
   function size(): void {
     dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -419,9 +427,11 @@ export function initCursorWeb(canvas: HTMLCanvasElement, lexicon: string[] = [])
     const top = sy - 240;
     const bottom = sy + vh + 240;
 
-    for (const c of cursors) {
+    for (let k = 0; k < cursors.length; k++) {
+      const c = cursors[k];
       if (!c.total) continue;
-      const p = progressFor(c, sy, vh);
+      // The eased value, not the raw scroll ratio. Set by tick() each frame.
+      const p = leads[k]?.disp ?? 0;
       if (p <= 0) continue;
 
       let budget = p * c.total;
@@ -562,13 +572,66 @@ export function initCursorWeb(canvas: HTMLCanvasElement, lexicon: string[] = [])
     ctx.globalAlpha = 1;
   }
 
+  // The pen is velocity-limited as well as eased: a band takes at least
+  // BAND_MIN_MS to cross end to end no matter how fast the reader flicks.
+  // Easing alone is not enough — a 10,000 px/s flick still drives the eased
+  // value through a whole band in a tenth of a second. The cap is on the
+  // fraction of a band per millisecond, so longer bands scroll faster.
+  const EASE_PER_FRAME = 0.06;
+  const EPSILON = 0.0004;
+  const BAND_MIN_MS = 4200;
+
+  function retarget(): void {
+    if (!state) return;
+    const sy = window.scrollY;
+    for (let k = 0; k < state.cursors.length; k++) {
+      const c = state.cursors[k];
+      const lead = leads[k];
+      if (!lead) continue;
+      lead.target = c.total ? progressFor(c, sy, state.vh) : 0;
+    }
+  }
+
+  function tick(prev: number): void {
+    raf = 0;
+    if (!state || !live) return;
+
+    const now = performance.now();
+    const dt = Math.min(64, now - prev);
+    // 1 - (1 - r)^(dt/16.67): frame-rate independent easing.
+    const k = 1 - Math.pow(1 - EASE_PER_FRAME, dt / 16.67);
+
+    const maxStep = dt / BAND_MIN_MS;
+    // Receding is uncapped: scrolling back up should lift the ink at once, not
+    // play the drawing in reverse at the same crawl it was laid down at.
+    const recede = 1 - Math.pow(1 - 0.3, dt / 16.67);
+
+    let moving = false;
+    for (let i = 0; i < leads.length; i++) {
+      const lead = leads[i];
+      const d = lead.target - lead.disp;
+      if (Math.abs(d) < EPSILON) {
+        lead.disp = lead.target;
+        continue;
+      }
+      if (d < 0) {
+        lead.disp += d * recede;
+      } else {
+        // Ease, then clamp: the pen approaches its target smoothly but can
+        // never cover more than 1/BAND_MIN_MS of the band in a millisecond.
+        lead.disp += Math.min(d * k, maxStep);
+      }
+      moving = true;
+    }
+
+    draw();
+    if (moving) raf = requestAnimationFrame(() => tick(now));
+  }
+
   function schedule(): void {
-    if (queued) return;
-    queued = true;
-    requestAnimationFrame(() => {
-      queued = false;
-      draw();
-    });
+    retarget();
+    if (raf) return;
+    raf = requestAnimationFrame(() => tick(performance.now()));
   }
 
   function rebuild(): void {
@@ -580,7 +643,19 @@ export function initCursorWeb(canvas: HTMLCanvasElement, lexicon: string[] = [])
     document.body.classList.remove("web-off");
     live = true;
     size();
+
+    // Carry the current progress across a rebuild so a resize or an opened
+    // <details> does not snap the drawing back to the top of the band.
+    const prevDisp = leads.map((l) => l.disp);
     state = build(ctx, lexicon);
+    const sy = window.scrollY;
+    leads = state.cursors.map((c, k) => {
+      const target = c.total ? progressFor(c, sy, state!.vh) : 0;
+      // A band that lost its units has nothing to show; anything else resumes
+      // from where it stood, clamped in case the band moved under it.
+      const keep = prevDisp[k];
+      return { disp: keep === undefined ? target : Math.min(1, keep), target };
+    });
     draw();
   }
 

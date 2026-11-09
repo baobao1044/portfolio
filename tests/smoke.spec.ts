@@ -59,27 +59,33 @@ test.describe("cursor web", () => {
     await expect.poll(async () => page.locator("#page-overlay").count(), { timeout: 10_000 }).toBe(0);
 
     await page.evaluate(() => window.scrollTo(0, window.innerHeight));
-    await page.waitForTimeout(350);
 
-    const painted = await page.evaluate(() => {
-      const c = document.getElementById("cursor-web") as HTMLCanvasElement | null;
-      if (!c) return -1;
-      const ctx = c.getContext("2d");
-      if (!ctx) return -1;
-      const { data } = ctx.getImageData(0, 0, c.width, c.height);
-      let nonEmpty = 0;
-      for (let i = 3; i < data.length; i += 4) {
-        if (data[i] !== 0) {
-          nonEmpty++;
-          if (nonEmpty > 500) break;
-        }
-      }
-      return nonEmpty;
-    });
-
-    expect(painted).toBeGreaterThan(500);
+    // The pen is eased and velocity-limited, so it arrives well after the
+    // scroll event. Poll rather than sleeping a fixed frame count.
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(() => {
+            const c = document.getElementById("cursor-web") as HTMLCanvasElement | null;
+            if (!c) return -1;
+            const ctx = c.getContext("2d");
+            if (!ctx) return -1;
+            const { data } = ctx.getImageData(0, 0, c.width, c.height);
+            let nonEmpty = 0;
+            for (let i = 3; i < data.length; i += 4) {
+              if (data[i] !== 0) {
+                nonEmpty++;
+                if (nonEmpty > 500) break;
+              }
+            }
+            return nonEmpty;
+          }),
+        { timeout: 6_000 },
+      )
+      .toBeGreaterThan(500);
   });
 });
+
 
 test("reduced motion disables the decorative web", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
