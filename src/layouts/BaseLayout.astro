@@ -11,7 +11,6 @@ interface Props {
 
 const { title = site.title, description = site.description } = Astro.props as Props;
 
-// Canonical and sitemap URLs must respect the GitHub Pages sub-path in `base`.
 const base = import.meta.env.BASE_URL;
 const origin = Astro.site ?? new URL("https://baobao1044.github.io");
 const canonical = new URL(Astro.url.pathname, origin).href;
@@ -29,11 +28,9 @@ const jsonLd = {
 ---
 
 <!doctype html>
-<html lang="en" class="h-full antialiased">
+<html lang="en" class="antialiased">
   <head>
     <meta charset="utf-8" />
-    <!-- Set before first paint: CSS uses `.js` to decide whether the intro
-         overlay may be shown at all. -->
     <script is:inline>
       document.documentElement.classList.add("js");
     </script>
@@ -68,39 +65,55 @@ const jsonLd = {
   <body class="relative font-sans text-ink">
     <IntroOverlay />
 
-    <!-- Words the web draws behind each section. Serialised here so the canvas
-         module reads them synchronously at boot. -->
     <script type="application/json" id="web-lexicon" set:html={JSON.stringify(webLexicon)} />
 
-    <!-- Decorative scroll-drawn web. Fixed, z-0, sits under every section. -->
+    <!-- Living Crimson Field: micro-matrix + interactive spotlight + tactile grain -->
+    <div class="crimson-atmosphere" aria-hidden="true"></div>
+    <div class="crimson-grain" aria-hidden="true"></div>
+
+    <!-- Decorative scroll-drawn & pointer-reactive CAD web -->
     <CursorWeb />
 
     <div class="relative z-10 flex min-h-screen flex-col">
       <header class="site-header">
         <nav
-          class="mx-auto flex max-w-[1500px] items-baseline justify-between gap-6 px-5 py-5 md:px-8 md:py-6"
+          class="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-5 py-4 md:px-8 md:py-4"
           aria-label="Primary"
         >
-          <a href={`${base}`} class="mono-label font-bold tracking-[0.34em] link-underline">
-            BAOBG
+          <a
+            href={`${base}`}
+            class="inline-flex items-center gap-2.5 bg-ink px-3 py-1.5 text-bone transition-transform hover:-translate-y-0.5"
+          >
+            <span class="inline-block h-2 w-2 bg-red" aria-hidden="true"></span>
+            <span class="mono-label font-bold tracking-[0.32em]">BAOBG</span>
           </a>
 
-          <ul class="hidden items-baseline gap-7 md:flex">
+          <ul class="hidden items-center gap-2 lg:gap-4 md:flex">
             {navItems.map((item) => (
               <li>
-                <a href={item.href} class="mono-label link-underline hover:text-ink/90">
+                <a
+                  href={item.href}
+                  data-nav-link
+                  class="mono-label nav-pill font-medium"
+                >
                   {item.label}
                 </a>
               </li>
             ))}
           </ul>
 
-          <a
-            href={`mailto:${contact.email}`}
-            class="mono-label hidden text-ink/90 transition-opacity hover:opacity-100 md:block link-underline"
-          >
-            {contact.email}
-          </a>
+          <div class="hidden items-center gap-4 md:flex">
+            <span class="mono-label hidden items-center gap-2 lg:inline-flex" aria-hidden="true">
+              <span class="status-dot"></span>
+              <span>SYS · ONLINE</span>
+            </span>
+            <a
+              href={`mailto:${contact.email}`}
+              class="mono-label border border-ink px-3 py-1.5 font-bold transition-colors hover:bg-ink hover:text-bone"
+            >
+              {contact.email}
+            </a>
+          </div>
 
           <button
             id="mobile-toggle"
@@ -108,45 +121,64 @@ const jsonLd = {
             aria-label="Open menu"
             aria-expanded="false"
             aria-controls="mobile-panel"
-            class="mono-label md:hidden"
+            class="mono-label border border-ink bg-ink px-3 py-1.5 font-bold text-bone md:hidden"
           >
             Menu
           </button>
         </nav>
 
-        <div id="mobile-panel" class="mobile-panel md:hidden" hidden>
-          <ul class="flex flex-col gap-1 px-5 pb-8">
+        <div id="mobile-panel" class="mobile-panel surface-ink md:hidden" hidden>
+          <ul class="flex flex-col gap-1 px-5 py-6">
             {navItems.map((item, i) => (
-              <li class="border-t hairline">
+              <li class="border-b border-bone/15">
                 <a
                   href={item.href}
-                  class="mobile-link flex items-baseline justify-between py-3"
+                  class="mobile-link flex items-baseline justify-between py-3 text-bone transition-colors hover:text-red"
                 >
                   <span class="display display-m">{item.label}</span>
-                  <span class="mono-label text-ink/90">0{i + 1}</span>
+                  <span class="mono-label text-red" aria-hidden="true">0{i + 1}</span>
                 </a>
               </li>
             ))}
-            <li class="border-t hairline pt-4">
-              <a href={`mailto:${contact.email}`} class="mono-label link-underline">
+            <li class="pt-5">
+              <a href={`mailto:${contact.email}`} class="mono-label text-red link-underline">
                 {contact.email}
               </a>
             </li>
           </ul>
         </div>
+
+        <div class="scroll-laser" aria-hidden="true"></div>
       </header>
 
       <main class="flex-grow">
         <slot />
       </main>
 
-      <footer class="border-t border-ink px-5 py-8 md:px-8">
-        <div
-          class="mx-auto flex max-w-[1500px] flex-col gap-3 md:flex-row md:items-baseline md:justify-between"
-        >
-          <p class="mono-label">© {new Date().getFullYear()} {site.author}</p>
-          <p class="mono-label text-ink/90">{site.role} · {site.company}</p>
-          <p class="mono-label text-ink/90">No trackers · No analytics · Static HTML</p>
+      <footer class="surface-ink border-t-2 border-ink px-5 py-12 md:px-8 md:py-16">
+        <div class="mx-auto max-w-[1500px]">
+          <div class="flex flex-col justify-between gap-8 border-b border-bone/15 pb-10 md:flex-row md:items-end">
+            <div>
+              <p class="mono-label mb-3 text-red">END OF TRANSMISSION // EDITION 2026</p>
+              <p class="display text-[clamp(2.5rem,8vw,6.5rem)] leading-[0.88] text-bone">
+                BAOBG <span class="text-red">/</span> CPU FIRST.
+              </p>
+            </div>
+
+            <a
+              href="#hero"
+              class="brutal-btn brutal-btn--red mono-label inline-flex items-center gap-3 self-start px-5 py-3 md:self-auto"
+            >
+              <span>Return to top</span>
+              <span aria-hidden="true">↑</span>
+            </a>
+          </div>
+
+          <div class="mt-8 flex flex-col gap-3 md:flex-row md:items-baseline md:justify-between">
+            <p class="mono-label text-bone">© {new Date().getFullYear()} {site.author}</p>
+            <p class="mono-label text-bone/80">{site.role} · {site.company}</p>
+            <p class="mono-label text-red">No trackers · No analytics · Zero runtime bloat</p>
+          </div>
         </div>
       </footer>
     </div>
@@ -154,13 +186,18 @@ const jsonLd = {
     <script>
       import { initIntro } from "../lib/intro";
       import { initCursorWeb } from "../lib/cursorWeb";
-      // Serialised at build time so the client bundle carries no data import.
-      const LEXICON: string[] = JSON.parse(document.getElementById("web-lexicon")?.textContent ?? "[]");
+      import { initMotion } from "../lib/motion";
+
+      const LEXICON: string[] = JSON.parse(
+        document.getElementById("web-lexicon")?.textContent ?? "[]",
+      );
 
       initIntro();
 
       const canvas = document.getElementById("cursor-web") as HTMLCanvasElement | null;
       if (canvas) initCursorWeb(canvas, LEXICON);
+
+      initMotion();
 
       const toggle = document.getElementById("mobile-toggle");
       const panel = document.getElementById("mobile-panel");

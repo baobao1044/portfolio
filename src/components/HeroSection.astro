@@ -1,65 +1,248 @@
 ---
-import { hero } from "../data/portfolio";
+import { hero, site } from "../data/portfolio";
 
 const [first, second, third] = hero.stats;
+
+const lanes = [
+  {
+    code: "01",
+    label: "TERNARY SIMD",
+    repo: "vAGI-2 · NSE",
+    metric: "{-1, 0, +1} · AVX2 + HNSW",
+    detail:
+      "Packed ternary matrix-vector kernels & sparse micro-expert routing running directly on commodity CPUs.",
+  },
+  {
+    code: "02",
+    label: "PYTHON → LLVM",
+    repo: "AOT-Compiler",
+    metric: "AST → SSA IR → LLVM IR",
+    detail:
+      "Ahead-of-time lowering with constant folding, dead-code elimination, and zero-copy pinned NumPy bridges.",
+  },
+  {
+    code: "03",
+    label: "PE32+ → VULKAN",
+    repo: "rust-windows-compat",
+    metric: "M0–M9 · ZERO WINE CODE",
+    detail:
+      "Clean-room Rust PE loader, NT/Win32 subsystem surface, DXGI/D3D translation, and HLSL-to-SPIR-V compiler.",
+  },
+  {
+    code: "04",
+    label: "BINARY SANDBOX",
+    repo: "RE-super-agent",
+    metric: "44 TOOLS · 298 TESTS",
+    detail:
+      "Five specialist MCP servers orchestrating Ghidra, radare2, angr, Frida, and Qiling in isolated execution.",
+  },
+];
+
+const tickerItems = [
+  "CPU-FIRST AI INFERENCE",
+  "TERNARY {-1,0,+1} KERNELS",
+  "PYTHON → SSA → LLVM IR",
+  "PURE-RUST WINDOWS COMPAT",
+  "WEBGPU + WEBGL2 ENGINE",
+  "44-TOOL MCP RE SANDBOX",
+  "D3D11 / OPENGL / VULKAN HOOKS",
+  "PARALLEL RANGE OPFS",
+];
+
+const simdBars = [0.1, 0.35, 0.6, 0.2, 0.75, 0.45, 0.9, 0.3, 0.65, 0.15, 0.8, 0.5];
 ---
 
-<section
-  id="hero"
-  data-section
-  class="border-b border-ink px-5 pb-12 pt-10 md:px-8 md:pb-16 md:pt-14"
->
-  <div class="mx-auto max-w-[1500px]">
+<section id="hero" data-section class="border-b-2 border-ink pt-8 md:pt-12">
+  <div class="mx-auto max-w-[1500px] px-5 pb-12 md:px-8 md:pb-16">
+    <!-- Top HUD Telemetry Strip -->
     <div
-      class="mb-8 flex flex-wrap items-baseline justify-between gap-3 border-b hairline pb-3 md:mb-12"
+      class="mb-8 flex flex-wrap items-center justify-between gap-3 border-b-2 border-ink pb-3.5 md:mb-12"
     >
-      <span class="mono-label">{hero.eyebrow}</span>
-      <span class="mono-label text-ink/90">PORTFOLIO / 2026</span>
-    </div>
-
-    <h1 class="display display-xl" data-web>
-      <span class="block">{hero.headlineTop}</span>
-      <span class="block">{hero.headlineBottom}</span>
-    </h1>
-
-    <div class="mt-10 grid gap-8 md:mt-16 md:grid-cols-12 md:gap-6">
-      <p class="md:col-span-6 md:col-start-1 max-w-[46ch] text-[15px] leading-[1.55] md:text-base">
-        {hero.summary}
-      </p>
-
-      <div class="md:col-span-3 md:col-start-8 flex flex-col gap-3">
-        <a
-          href={hero.ctaPrimary.href}
-          class="mono-label inline-flex items-center gap-3 border border-ink bg-ink px-4 py-3 text-bone transition-colors hover:bg-transparent hover:text-ink"
-        >
-          {hero.ctaPrimary.label}
-          <span aria-hidden="true">↓</span>
-        </a>
-        <a
-          href={hero.ctaSecondary.href}
-          class="mono-label inline-flex items-center gap-3 border border-ink px-4 py-3 transition-colors hover:bg-ink hover:text-bone"
-        >
-          {hero.ctaSecondary.label}
-          <span aria-hidden="true">→</span>
-        </a>
+      <div class="flex items-center gap-3">
+        <span class="bg-ink px-2 py-0.5 font-mono text-[10px] font-bold tracking-[0.24em] text-red">
+          SYS.00
+        </span>
+        <span class="mono-label font-bold">{hero.eyebrow}</span>
       </div>
 
-      <dl
-        class="mt-2 flex flex-wrap gap-x-6 gap-y-4 md:col-span-2 md:col-start-11 md:mt-0 md:flex-col md:gap-4"
+      <div class="flex items-center gap-4">
+        <span class="mono-label hidden sm:inline">{site.author} · {site.company}</span>
+        <span class="mono-label border border-ink px-2.5 py-0.5 font-bold">
+          PORTFOLIO / 2026
+        </span>
+      </div>
+    </div>
+
+    <!-- Monumental Grid: Display Headline + Interactive Execution Deck -->
+    <div class="grid items-start gap-10 lg:grid-cols-12 lg:gap-8">
+      <div class="lg:col-span-7">
+        <h1 class="display display-xl hero-monument" data-web>
+          <span class="block">{hero.headlineTop}</span>
+          <span class="mt-1 inline-block hero-outline-badge">{hero.headlineBottom}</span>
+        </h1>
+
+        <p
+          class="mt-8 max-w-[50ch] border-l-4 border-ink pl-4 text-[15px] font-medium leading-[1.6] md:mt-10 md:text-[17px]"
+        >
+          {hero.summary}
+        </p>
+
+        <div class="mt-8 flex flex-wrap items-center gap-4 md:mt-10">
+          <a
+            href={hero.ctaPrimary.href}
+            class="brutal-btn brutal-btn--primary mono-label inline-flex items-center gap-3 px-6 py-4 font-bold"
+          >
+            <span>{hero.ctaPrimary.label}</span>
+            <span aria-hidden="true">↓</span>
+          </a>
+          <a
+            href={hero.ctaSecondary.href}
+            class="brutal-btn brutal-btn--secondary mono-label inline-flex items-center gap-3 px-6 py-4 font-bold"
+          >
+            <span>{hero.ctaSecondary.label}</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Interactive Obsidian Execution Telemetry Deck -->
+      <aside
+        class="telemetry-card surface-ink p-5 md:p-6 lg:col-span-5"
+        aria-label="Core engineering domains"
       >
-        <div data-web>
-          <dt class="mono-label text-ink/90">{first.label}</dt>
-          <dd class="display display-m tabular-nums">{first.value}</dd>
+        <div class="flex items-center justify-between border-b border-bone/15 pb-3">
+          <div class="flex items-center gap-2.5">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span class="mono-label font-bold text-bone">EXECUTION PIPELINE</span>
+          </div>
+          <span class="mono-label text-red">AVX2 // NATIVE</span>
         </div>
-        <div>
-          <dt class="mono-label text-ink/90">{second.label}</dt>
-          <dd class="display display-m tabular-nums">{second.value}</dd>
+
+        <!-- 12-lane animated register pulse -->
+        <div class="mt-4 grid grid-cols-12 gap-1.5" aria-hidden="true">
+          {
+            simdBars.map((d, idx) => (
+              <div class="simd-bar">
+                <div
+                  class="simd-bar-fill"
+                  style={`--delay:${(d * 0.9).toFixed(2)}s; --dur:${(1.35 + (idx % 4) * 0.28).toFixed(2)}s;`}
+                />
+              </div>
+            ))
+          }
         </div>
-        <div>
-          <dt class="mono-label text-ink/90">{third.label}</dt>
-          <dd class="display display-m tabular-nums">{third.value}</dd>
+
+        <!-- Interactive 4-domain selector -->
+        <div class="mt-5 grid grid-cols-2 gap-2" role="group" aria-label="Pipeline lanes">
+          {
+            lanes.map((lane, idx) => (
+              <button
+                type="button"
+                data-lane-btn
+                data-selected={idx === 0 ? "true" : "false"}
+                aria-pressed={idx === 0 ? "true" : "false"}
+                data-repo-name={lane.repo}
+                data-metric={lane.metric}
+                data-detail={lane.detail}
+                class="group flex flex-col items-start gap-1 border border-bone/20 p-2.5 text-left transition-colors hover:border-red data-[selected=true]:border-red data-[selected=true]:bg-red data-[selected=true]:text-ink"
+              >
+                <span class="mono-label text-[9px] text-red group-data-[selected=true]:text-ink font-bold">
+                  LANE {lane.code}
+                </span>
+                <span class="font-mono text-[11px] font-bold tracking-wider">
+                  {lane.label}
+                </span>
+              </button>
+            ))
+          }
         </div>
-      </dl>
+
+        <!-- Live readout screen -->
+        <div class="mt-4 border border-bone/15 bg-inkSoft p-4">
+          <div class="flex flex-wrap items-baseline justify-between gap-2 border-b border-bone/10 pb-2">
+            <span id="lane-repo" class="mono-label font-bold text-red">
+              {lanes[0].repo}
+            </span>
+            <span id="lane-metric" class="mono-label text-[9px] text-bone">
+              {lanes[0].metric}
+            </span>
+          </div>
+          <p id="lane-readout" class="mt-3 text-[13px] leading-[1.55] text-bone/90">
+            {lanes[0].detail}
+          </p>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Industrial Stat Gauges -->
+    <dl
+      class="mt-12 grid grid-cols-1 gap-4 border-t-2 border-ink pt-8 sm:grid-cols-3 md:mt-16"
+    >
+      <div
+        data-web
+        class="group flex flex-col justify-between border border-ink bg-bone/10 px-5 py-4 transition-colors hover:bg-ink hover:text-bone"
+      >
+        <dt class="flex items-center justify-between gap-2 mono-label font-bold">
+          <span class="group-hover:text-red">{first.label}</span>
+          <span class="group-hover:text-bone" aria-hidden="true">01 // PUBLIC</span>
+        </dt>
+        <dd
+          class="display display-l mt-2 tabular-nums leading-none"
+          data-count={first.value}
+        >
+          {first.value}
+        </dd>
+      </div>
+
+      <div
+        class="group flex flex-col justify-between border border-ink bg-bone/10 px-5 py-4 transition-colors hover:bg-ink hover:text-bone"
+      >
+        <dt class="flex items-center justify-between gap-2 mono-label font-bold">
+          <span class="group-hover:text-red">{second.label}</span>
+          <span class="group-hover:text-bone" aria-hidden="true">02 // VERIFIED</span>
+        </dt>
+        <dd
+          class="display display-l mt-2 tabular-nums leading-none"
+          data-count={second.value}
+        >
+          {second.value}
+        </dd>
+      </div>
+
+      <div
+        class="group flex flex-col justify-between border border-ink bg-bone/10 px-5 py-4 transition-colors hover:bg-ink hover:text-bone"
+      >
+        <dt class="flex items-center justify-between gap-2 mono-label font-bold">
+          <span class="group-hover:text-red">{third.label}</span>
+          <span class="group-hover:text-bone" aria-hidden="true">03 // METRICS</span>
+        </dt>
+        <dd
+          class="display display-l mt-2 tabular-nums leading-none"
+          data-count={third.value}
+        >
+          {third.value}
+        </dd>
+      </div>
+    </dl>
+  </div>
+
+  <!-- Full-Bleed Kinetic Marquee Ribbon -->
+  <div class="marquee-shell py-3.5" aria-hidden="true">
+    <div class="marquee-track items-center">
+      {
+        [0, 1].map(() => (
+          <div class="flex shrink-0 items-center">
+            {tickerItems.map((item) => (
+              <span class="inline-flex items-center gap-5 px-5">
+                <span class="font-display text-xl tracking-wide text-bone md:text-2xl">
+                  {item}
+                </span>
+                <span class="inline-block h-2.5 w-2.5 rotate-45 bg-red" />
+              </span>
+            ))}
+          </div>
+        ))
+      }
     </div>
   </div>
 </section>

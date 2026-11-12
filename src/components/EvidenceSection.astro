@@ -2,46 +2,68 @@
 import { evidence } from "../data/portfolio";
 ---
 
-<section id="evidence" data-section class="border-b border-ink px-5 py-12 md:px-8 md:py-20">
+<section id="evidence" data-section class="border-b-2 border-ink px-5 py-14 md:px-8 md:py-24">
   <div class="mx-auto max-w-[1500px]">
-    <div class="section-label mb-8 md:mb-12">
-      <span aria-hidden="true">04</span>
-      <h2 class="mono-label">Evidence</h2>
-      <span class="ml-auto text-ink/90">WHAT EACH CLAIM RESTS ON</span>
+    <div class="section-label mb-10 md:mb-14">
+      <span class="section-index-chip" aria-hidden="true">04</span>
+      <h2 class="mono-label font-bold">Evidence</h2>
+      <span class="ml-auto font-bold">WHAT EACH CLAIM RESTS ON</span>
     </div>
 
-    <p class="display display-l max-w-[26ch] text-balance" data-web>
+    <p class="display display-l kinetic-rise max-w-[26ch] text-balance" data-web>
       Numbers first, adjectives never.
     </p>
 
-    <ul class="mt-10 flex flex-col md:mt-14">
-      {
-        evidence.map((e) => (
-          <li class="border-t hairline last:border-b">
-            <a
-              href={e.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="group grid grid-cols-12 items-baseline gap-x-3 gap-y-1 py-4 transition-colors hover:bg-bone/15 md:gap-4 md:py-3"
-            >
-              <span class="col-span-12 mono-label md:col-span-3">{e.left}</span>
-              <span class="col-span-12 text-[14px] leading-snug md:col-span-5">{e.right}</span>
-              <span class="col-span-11 mono-label text-[9px] tracking-[0.16em] text-ink/90 md:col-span-4">
-                {e.basis}
-              </span>
-              <span
-                aria-hidden="true"
-                class="col-span-1 justify-self-end mono-label text-ink/90 transition-opacity group-hover:opacity-100"
-              >
-                ↗
-              </span>
-            </a>
-          </li>
-        ))
-      }
-    </ul>
+    <div class="mt-10 border-t-2 border-ink md:mt-14">
+      <div
+        class="surface-ink hidden grid-cols-12 gap-4 border-b-2 border-ink px-4 py-3 md:grid"
+        aria-hidden="true"
+      >
+        <span class="col-span-3 mono-label font-bold text-red">REPOSITORY</span>
+        <span class="col-span-5 mono-label font-bold text-bone">MEASURED ARTIFACT</span>
+        <span class="col-span-3 mono-label font-bold text-bone">BASIS</span>
+        <span class="col-span-1 justify-self-end mono-label font-bold text-red">SRC</span>
+      </div>
 
-    <p class="mono-label mt-8 max-w-[70ch] leading-relaxed text-ink/90">
+      <ul class="flex flex-col">
+        {
+          evidence.map((e, idx) => (
+            <li class="border-b border-ink/35">
+              <a
+                href={e.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="evidence-link group grid grid-cols-12 items-baseline gap-x-3 gap-y-1.5 px-2 py-4 md:gap-4 md:py-4"
+              >
+                <span class="evidence-repo col-span-12 flex items-center gap-2.5 mono-label font-bold md:col-span-3">
+                  <span
+                    class="bg-ink px-1.5 py-0.5 text-red transition-colors group-hover:bg-red group-hover:text-ink"
+                    aria-hidden="true"
+                  >
+                    {String(idx + 1).padStart(2, "0")}
+                  </span>
+                  <span>{e.left}</span>
+                </span>
+                <span class="col-span-12 text-[14px] font-medium leading-snug md:col-span-5">
+                  {e.right}
+                </span>
+                <span class="evidence-basis col-span-11 mono-label text-[9px] tracking-[0.16em] md:col-span-3">
+                  {e.basis}
+                </span>
+                <span
+                  aria-hidden="true"
+                  class="col-span-1 justify-self-end mono-label font-bold transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                >
+                  ↗
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <p class="mono-label mt-8 max-w-[74ch] border-l-2 border-ink pl-3.5 leading-relaxed">
       Every figure above is quoted from the repository it links to, read 2026-11-09. Where a
       README describes its own project as research or alpha, that status is shown in the work
       list rather than smoothed over.

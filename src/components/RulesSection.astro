@@ -2,29 +2,36 @@
 import { principles } from "../data/portfolio";
 ---
 
-<section id="rules" data-section class="border-b border-ink px-5 py-12 md:px-8 md:py-20">
+<section id="rules" data-section class="border-b-2 border-ink px-5 py-14 md:px-8 md:py-24">
   <div class="mx-auto max-w-[1500px]">
-    <div class="section-label mb-8 md:mb-12">
-      <span aria-hidden="true">03</span>
-      <h2 class="mono-label">Rules</h2>
-      <span class="ml-auto text-ink/90">HOW THE WORK GETS MADE</span>
+    <div class="section-label mb-10 md:mb-14">
+      <span class="section-index-chip" aria-hidden="true">03</span>
+      <h2 class="mono-label font-bold">Rules</h2>
+      <span class="ml-auto font-bold">HOW THE WORK GETS MADE</span>
     </div>
 
-    <ul class="grid gap-0 md:grid-cols-2">
+    <ul class="grid gap-5 md:grid-cols-2 md:gap-6">
       {
-        principles.map((p, i) => (
+        principles.map((p) => (
           <li
             data-web
-            class:list={[
-              "flex flex-col gap-3 border-t border-ink py-7 pr-6 md:py-9",
-              i % 2 === 1 && "md:border-l md:pl-6 md:pr-0",
-            ]}
+            class="rule-card kinetic-rise flex flex-col justify-between gap-6 p-6 md:p-9"
           >
-            <span class="mono-label text-ink/90">{p.number}</span>
-            <h3 class="display display-m max-w-[18ch]">{p.title}</h3>
-            <p class="max-w-[46ch] text-[14px] leading-[1.6] text-ink/90 md:text-[15px]">
-              {p.description}
-            </p>
+            <div class="flex items-start justify-between gap-4">
+              <span class="rule-num mono-label border border-current bg-ink px-2.5 py-1 font-bold text-red transition-colors">
+                RULE // {p.number}
+              </span>
+              <span class="rule-ghost" aria-hidden="true">
+                {p.number}
+              </span>
+            </div>
+
+            <div class="flex flex-col gap-3">
+              <h3 class="display display-m max-w-[18ch]">{p.title}</h3>
+              <p class="rule-sub max-w-[48ch] text-[14px] leading-[1.65] md:text-[15px]">
+                {p.description}
+              </p>
+            </div>
           </li>
         ))
       }

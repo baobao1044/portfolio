@@ -2,50 +2,94 @@
 import { contact, site } from "../data/portfolio";
 ---
 
-<section id="contact" data-section class="px-5 py-14 md:px-8 md:py-24">
+<section id="contact" data-section class="px-5 py-16 md:px-8 md:py-28">
   <div class="mx-auto max-w-[1500px]">
-    <div class="section-label mb-8 md:mb-12">
-      <span aria-hidden="true">05</span>
-      <h2 class="mono-label">{contact.title}</h2>
-      <span class="ml-auto text-ink/90">OPEN</span>
+    <div class="section-label mb-10 md:mb-14">
+      <span class="section-index-chip" aria-hidden="true">05</span>
+      <h2 class="mono-label font-bold">{contact.title}</h2>
+      <span class="ml-auto font-bold">OPEN // DIRECT CHANNEL</span>
     </div>
 
-    <p class="display display-l max-w-[20ch] text-balance" data-web>
-      Send the hard problem.
-    </p>
+    <div class="grid gap-10 lg:grid-cols-12 lg:gap-8">
+      <div class="flex flex-col justify-between gap-8 lg:col-span-7">
+        <div>
+          <p class="display display-l kinetic-rise max-w-[20ch] text-balance" data-web>
+            Send the hard problem.
+          </p>
+          <p class="mt-6 max-w-[52ch] text-[15px] font-medium leading-[1.65] md:text-[17px]">
+            {contact.intro}
+          </p>
+        </div>
 
-    <div class="mt-12 grid gap-10 md:mt-16 md:grid-cols-12 md:gap-6">
-      <div class="md:col-span-6 flex flex-col gap-6">
-        <p class="max-w-[52ch] text-[15px] leading-[1.6] md:text-base">{contact.intro}</p>
+        <div class="flex flex-col gap-4 border-t-2 border-ink pt-6">
+          <span class="mono-label font-bold">PRIMARY DISPATCH</span>
+          <a
+            href={`mailto:${contact.email}`}
+            class="display display-m link-underline self-start break-all lowercase"
+          >
+            {contact.email}
+          </a>
 
-        <a
-          href={`mailto:${contact.email}`}
-          class="display display-m link-underline self-start break-all lowercase"
-        >
-          {contact.email}
-        </a>
+          <div class="mt-2 flex flex-wrap gap-3">
+            <a
+              href={`mailto:${contact.email}`}
+              class="brutal-btn brutal-btn--primary mono-label inline-flex items-center gap-3 px-5 py-3.5 font-bold"
+            >
+              <span>Write an email</span>
+              <span aria-hidden="true">→</span>
+            </a>
+
+            <button
+              id="copy-email-btn"
+              type="button"
+              data-email={contact.email}
+              class="brutal-btn brutal-btn--secondary mono-label inline-flex items-center gap-2.5 px-5 py-3.5 font-bold"
+            >
+              <span data-copy-label>Copy address</span>
+              <span aria-hidden="true">⧉</span>
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div class="md:col-span-4 md:col-start-9 flex flex-col gap-4">
-        <p class="mono-label border-b border-ink pb-2 text-ink/90">Elsewhere</p>
-        <ul class="flex flex-col gap-2">
-          {
-            contact.links.map((l) => (
-              <li>
-                <a
-                  href={l.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="mono-label link-underline inline-flex items-baseline gap-2"
-                >
-                  <span>{l.label}</span>
-                  <span aria-hidden="true" class="text-ink/90">↗</span>
-                </a>
-              </li>
-            ))
-          }
-        </ul>
-        <p class="mono-label mt-4 text-ink/90">{site.company} · {site.role}</p>
+      <!-- Obsidian Network / Profiles Terminal -->
+      <div
+        class="surface-ink telemetry-card flex flex-col justify-between gap-8 p-6 md:p-8 lg:col-span-5"
+      >
+        <div>
+          <div class="mb-5 flex items-center justify-between border-b border-bone/15 pb-3">
+            <span class="mono-label font-bold text-red">ELSEWHERE // VERIFIED</span>
+            <span class="status-dot" aria-hidden="true"></span>
+          </div>
+
+          <ul class="flex flex-col gap-3">
+            {
+              contact.links.map((l) => (
+                <li>
+                  <a
+                    href={l.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="group flex items-center justify-between border border-bone/20 bg-bone/5 px-4 py-4 text-bone transition-colors hover:border-red hover:bg-red hover:text-ink"
+                  >
+                    <span class="display text-2xl tracking-wide">{l.label}</span>
+                    <span
+                      aria-hidden="true"
+                      class="mono-label font-bold text-red group-hover:text-ink"
+                    >
+                      ↗
+                    </span>
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+
+        <div class="border-t border-bone/15 pt-4">
+          <p class="mono-label text-red">{site.company}</p>
+          <p class="mt-1 text-[14px] text-bone/90">{site.role}</p>
+        </div>
       </div>
     </div>
   </div>

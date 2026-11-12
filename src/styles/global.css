@@ -5,21 +5,34 @@
 /* ── Tokens ──────────────────────────────────────────────────────────────── */
 :root {
   --ink: #0a0a0a;
+  --ink-elevated: #121212;
   --red: #ff2400;
+  --red-bright: #ff3b1a;
+  --red-deep: #c91800;
   --bone: #f5f2ec;
-  --hair: rgba(10, 10, 10, 0.14);
+  --bone-muted: rgba(245, 242, 236, 0.78);
+  --hair: rgba(10, 10, 10, 0.22);
+  --hair-strong: rgba(10, 10, 10, 0.45);
+  --hair-on-ink: rgba(245, 242, 236, 0.16);
   --ease-cut: cubic-bezier(0.82, 0, 0.18, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --mx: 50vw;
+  --my: 35vh;
+  --scroll-p: 0;
 }
 
 @layer base {
   html {
-    background-color: var(--ink);
+    background-color: var(--red);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
   }
   @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
+    html {
+      scroll-behavior: auto;
+    }
   }
 
   body {
@@ -37,24 +50,113 @@
   }
 
   /* Scrollbar stays on palette instead of the platform default. */
-  ::-webkit-scrollbar { width: 10px; }
-  ::-webkit-scrollbar-track { background: var(--ink); }
-  ::-webkit-scrollbar-thumb { background: var(--red); }
-  ::-webkit-scrollbar-thumb:hover { background: var(--bone); }
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--ink);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--red);
+    border: 2px solid var(--ink);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--bone);
+  }
 
   :focus-visible {
     outline: 2px solid var(--ink);
     outline-offset: 3px;
   }
-  .on-ink :focus-visible {
+  .on-ink :focus-visible,
+  .surface-ink :focus-visible {
     outline-color: var(--bone);
   }
 }
 
+/* ── Living Crimson Atmosphere ───────────────────────────────────────────── */
+/* Precision anodized micro-matrix + interactive warm spotlight that gives the
+   scarlet field physical depth without altering body's WCAG AA base color. */
+.crimson-atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(
+      680px circle at var(--mx) var(--my),
+      rgba(255, 235, 214, 0.16),
+      rgba(255, 36, 0, 0) 68%
+    ),
+    radial-gradient(
+      circle at 1px 1px,
+      rgba(10, 10, 10, 0.14) 1px,
+      transparent 0
+    ),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.04) 0%,
+      rgba(10, 10, 10, 0.06) 100%
+    );
+  background-size: 100% 100%, 28px 28px, 100% 100%;
+}
+
+/* Subtle tactile grain overlay so large crimson expanses feel like risograph
+   ink on heavy stock rather than flat digital fill. */
+.crimson-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.045;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+/* ── Sticky Chrome & Scroll Laser ────────────────────────────────────────── */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgba(255, 36, 0, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--ink);
+}
+
+.scroll-laser {
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  height: 3px;
+  width: 100%;
+  background: var(--ink);
+  transform: scaleX(var(--scroll-p));
+  transform-origin: left;
+  pointer-events: none;
+}
+.scroll-laser::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: -1px;
+  width: 10px;
+  height: 5px;
+  background: var(--bone);
+}
+
+.nav-pill {
+  position: relative;
+  padding: 0.25rem 0.5rem;
+  transition: color 0.22s var(--ease-out-expo), background-color 0.22s var(--ease-out-expo);
+}
+.nav-pill[data-active="true"] {
+  background: var(--ink);
+  color: var(--bone);
+}
+
 /* ── Display type ────────────────────────────────────────────────────────── */
-/* Anton's cap height is 0.86em and its ascent metric 1.175em. A line-height
-   below 0.86 makes consecutive capped lines physically overlap, which is what
-   a 0.84 setting did — so the tight setting stops at 0.9. */
 .display {
   font-family: Anton, Archivo, Impact, sans-serif;
   font-weight: 400;
@@ -64,30 +166,84 @@
   text-wrap: balance;
 }
 
-.display-xl { font-size: clamp(3.25rem, 13.2vw, 12.5rem); }
-.display-l  { font-size: clamp(2rem, 7.4vw, 6rem); }
-.display-m  { font-size: clamp(1.6rem, 4.2vw, 3.25rem); }
+.display-xl {
+  font-size: clamp(3.35rem, 13.4vw, 12.8rem);
+}
+.display-l {
+  font-size: clamp(2.1rem, 7.2vw, 5.8rem);
+}
+.display-m {
+  font-size: clamp(1.55rem, 4vw, 3.15rem);
+}
 
-/* Row titles carry long single-token repo names ("constant-state-attention"),
-   which cannot break at a space and would otherwise push the grid apart. */
 .display-row {
-  font-size: clamp(1.05rem, 2.1vw, 1.9rem);
+  font-size: clamp(1.15rem, 2.25vw, 2.05rem);
   line-height: 1.02;
   overflow-wrap: anywhere;
   hyphens: auto;
 }
 
-.mono-label {
-  @apply font-mono text-[10px] uppercase;
-  letter-spacing: 0.28em;
+/* Brutalist offset shadow accent on monumental hero type */
+.hero-monument {
+  text-shadow: 0 1px 0 rgba(245, 242, 236, 0.18);
 }
 
-.hairline { border-color: var(--hair); }
+.hero-outline-badge {
+  display: inline-block;
+  background: var(--ink);
+  color: var(--red);
+  padding: 0.04em 0.18em 0.08em;
+  line-height: 0.88;
+  box-shadow: 6px 6px 0 rgba(10, 10, 10, 0.28);
+}
 
-/* Underline that draws in from the left on hover — a small nod to the
-   scrolling web, and the only hover effect on links. */
-/* `display` is left to Tailwind here on purpose: setting `inline-block`
-   unconditionally overrode `hidden`, so elements hidden on mobile reappeared. */
+.mono-label {
+  @apply font-mono text-[10px] uppercase;
+  letter-spacing: 0.26em;
+}
+
+.hairline {
+  border-color: var(--hair);
+}
+
+.surface-ink {
+  background-color: var(--ink);
+  color: var(--bone);
+}
+
+/* Live pulsing status beacon */
+.status-dot {
+  position: relative;
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background: var(--ink);
+}
+.surface-ink .status-dot {
+  background: var(--red);
+}
+.status-dot::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 9999px;
+  border: 1px solid currentColor;
+  animation: beacon-ping 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+@keyframes beacon-ping {
+  0% {
+    transform: scale(0.55);
+    opacity: 0.9;
+  }
+  80%,
+  100% {
+    transform: scale(1.75);
+    opacity: 0;
+  }
+}
+
+/* ── Links & Brutalist Buttons ───────────────────────────────────────────── */
 .link-underline {
   position: relative;
 }
@@ -96,7 +252,7 @@
   position: absolute;
   left: 0;
   bottom: -2px;
-  height: 1px;
+  height: 1.5px;
   width: 100%;
   background: currentColor;
   transform: scaleX(0);
@@ -104,12 +260,173 @@
   transition: transform 0.35s var(--ease-cut);
 }
 .link-underline:hover::after,
-.link-underline:focus-visible::after { transform: scaleX(1); }
+.link-underline:focus-visible::after {
+  transform: scaleX(1);
+}
+
+.brutal-btn {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1.5px solid var(--ink);
+  transition:
+    color 0.32s var(--ease-out-expo),
+    transform 0.25s var(--ease-out-expo),
+    box-shadow 0.25s var(--ease-out-expo);
+}
+.brutal-btn--primary {
+  background: var(--ink);
+  color: var(--bone);
+  box-shadow: 5px 5px 0 rgba(10, 10, 10, 0.28);
+}
+.brutal-btn--primary::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--bone);
+  transform: translateX(-101%);
+  transition: transform 0.36s var(--ease-cut);
+}
+.brutal-btn--primary:hover,
+.brutal-btn--primary:focus-visible {
+  color: var(--ink);
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0 var(--ink);
+}
+.brutal-btn--primary:hover::before,
+.brutal-btn--primary:focus-visible::before {
+  transform: translateX(0);
+}
+
+.brutal-btn--secondary {
+  background: rgba(245, 242, 236, 0.08);
+  color: var(--ink);
+  box-shadow: 5px 5px 0 rgba(10, 10, 10, 0.16);
+}
+.brutal-btn--secondary::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--ink);
+  transform: translateX(-101%);
+  transition: transform 0.36s var(--ease-cut);
+}
+.brutal-btn--secondary:hover,
+.brutal-btn--secondary:focus-visible {
+  color: var(--bone);
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0 rgba(10, 10, 10, 0.35);
+}
+.brutal-btn--secondary:hover::before,
+.brutal-btn--secondary:focus-visible::before {
+  transform: translateX(0);
+}
+
+.brutal-btn--red {
+  background: var(--red);
+  color: var(--ink);
+  border-color: var(--red);
+  font-weight: 700;
+}
+.brutal-btn--red:hover,
+.brutal-btn--red:focus-visible {
+  background: var(--bone);
+  border-color: var(--bone);
+  color: var(--ink);
+  transform: translate(-2px, -2px);
+}
+
+/* ── Kinetic Marquee Ticker ──────────────────────────────────────────────── */
+.marquee-shell {
+  overflow: hidden;
+  border-top: 2px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
+  background: var(--ink);
+  color: var(--bone);
+  user-select: none;
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  animation: marquee-scroll 28s linear infinite;
+}
+.marquee-shell:hover .marquee-track {
+  animation-play-state: paused;
+}
+@keyframes marquee-scroll {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+/* ── Masked Kinetic Reveals (opacity stays 1 for instant a11y & tests) ───── */
+.kinetic-mask {
+  overflow: hidden;
+  display: block;
+}
+html.js .kinetic-rise {
+  transform: translate3d(0, 28px, 0);
+  transition: transform 0.75s var(--ease-out-expo);
+}
+html.js .kinetic-rise.is-in {
+  transform: translate3d(0, 0, 0);
+}
+
+/* ── Hero Telemetry / SIMD Visualizer ────────────────────────────────────── */
+.telemetry-card {
+  position: relative;
+  background: var(--ink);
+  color: var(--bone);
+  border: 2px solid var(--ink);
+  box-shadow: 10px 10px 0 rgba(10, 10, 10, 0.28);
+}
+.telemetry-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--red), var(--bone), var(--red));
+}
+
+.simd-bar {
+  height: 22px;
+  background: rgba(245, 242, 236, 0.08);
+  border: 1px solid rgba(245, 242, 236, 0.14);
+  position: relative;
+  overflow: hidden;
+}
+.simd-bar-fill {
+  position: absolute;
+  inset: 0;
+  background: var(--red);
+  transform-origin: bottom;
+  animation: simd-pulse var(--dur, 1.8s) ease-in-out infinite alternate;
+  animation-delay: var(--delay, 0s);
+}
+@keyframes simd-pulse {
+  0% {
+    transform: scaleY(0.22);
+    opacity: 0.72;
+  }
+  50% {
+    transform: scaleY(0.95);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(0.45);
+    opacity: 0.85;
+  }
+}
 
 /* ── Intro overlay ───────────────────────────────────────────────────────── */
-/* Black, white type, cut fast. The overlay is removed by script; every
-   animation here is compositor-only (transform/opacity) so the intro cannot
-   drop frames while the rest of the page is still parsing. */
 #page-overlay {
   position: fixed;
   inset: 0;
@@ -122,18 +439,18 @@
   will-change: clip-path;
 }
 #page-overlay.is-done {
-  clip-path: inset(0 0 100% 0);
-  transition: clip-path 0.62s var(--ease-cut);
+  clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
+  transition: clip-path 0.65s var(--ease-cut);
   pointer-events: none;
 }
-#page-overlay.is-gone { display: none; }
+#page-overlay.is-gone {
+  display: none;
+}
 
-/* Intro is script-driven. With JS off or broken, the overlay must never sit on
-   top of the page as a black screen. */
-html:not(.js) #page-overlay { display: none; }
+html:not(.js) #page-overlay {
+  display: none;
+}
 
-/* Scroll is held still while the cuts play, so the web does not move under a
-   sequence the reader has not chosen to scroll yet. */
 html.intro-lock,
 html.intro-lock body {
   overflow: hidden !important;
@@ -145,40 +462,59 @@ html.intro-lock body {
   display: grid;
   place-items: center;
   font-family: Anton, Archivo, Impact, sans-serif;
-  font-size: clamp(3rem, 17vw, 17rem);
+  font-size: clamp(3.2rem, 18vw, 18rem);
   line-height: 0.8;
   letter-spacing: -0.03em;
   text-transform: uppercase;
   white-space: nowrap;
   opacity: 0;
-  transform: scale(1.14);
-  animation: intro-cut 520ms var(--ease-cut) forwards;
+  transform: scale(1.16);
+  animation: intro-cut 500ms var(--ease-cut) forwards;
 }
 .intro-word.inverse {
   color: var(--ink);
   background: var(--bone);
-  clip-path: inset(31% 0 31% 0);
+  clip-path: inset(28% 0 28% 0);
+}
+.intro-word.scarlet {
+  color: var(--ink);
+  background: var(--red);
+  clip-path: inset(20% 0 20% 0);
 }
 
 @keyframes intro-cut {
-  0%   { opacity: 0; transform: scale(1.14); }
-  14%  { opacity: 1; transform: scale(1); }
-  78%  { opacity: 1; transform: scale(1); }
-  100% { opacity: 0; transform: scale(0.97); }
+  0% {
+    opacity: 0;
+    transform: scale(1.16);
+  }
+  14% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  78% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
 }
 
 .intro-rule {
   position: absolute;
   left: 0;
   width: 100%;
-  height: 1px;
-  background: var(--bone);
+  height: 2px;
+  background: var(--red);
   transform: scaleX(0);
   transform-origin: left;
   animation: intro-rule 420ms var(--ease-cut) forwards;
 }
 @keyframes intro-rule {
-  to { transform: scaleX(1); }
+  to {
+    transform: scaleX(1);
+  }
 }
 
 .intro-meta {
@@ -188,15 +524,15 @@ html.intro-lock body {
   letter-spacing: 0.28em;
   text-transform: uppercase;
   opacity: 0;
-  animation: intro-meta 400ms ease forwards;
+  animation: intro-meta 360ms ease forwards;
+}
+.intro-meta--accent {
+  color: var(--red);
 }
 @keyframes intro-meta {
-  to { opacity: 0.72; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  #page-overlay { display: none !important; }
-  .intro-word, .intro-rule, .intro-meta { animation: none; opacity: 1; }
+  to {
+    opacity: 0.92;
+  }
 }
 
 /* ── Cursor web canvas ───────────────────────────────────────────────────── */
@@ -205,46 +541,289 @@ html.intro-lock body {
   inset: 0;
   width: 100%;
   height: 100%;
-  z-index: 0;
+  z-index: 2;
   pointer-events: none;
 }
-body.web-off #cursor-web { display: none; }
+body.web-off #cursor-web {
+  display: none;
+}
 
 /* ── Section chrome ──────────────────────────────────────────────────────── */
 .section-label {
   @apply mono-label;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 0.75rem;
-  border-bottom: 1px solid var(--hair);
-  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 0.85rem;
+}
+
+.section-index-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ink);
+  color: var(--red);
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  letter-spacing: 0.16em;
 }
 
 .mobile-panel {
   border-top: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--bone);
 }
 
+/* ── Work Showcase Rows (Curtain-Sweep Architecture) ─────────────────────── */
+.work-row {
+  position: relative;
+  border-bottom: 1px solid var(--hair-strong);
+  transition: border-color 0.25s ease;
+}
 .work-row summary {
   cursor: pointer;
   list-style: none;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
 }
-.work-row summary::-webkit-details-marker { display: none; }
-.work-row[open] .work-plus { transform: rotate(45deg); }
-.work-plus { transition: transform 0.3s var(--ease-cut); }
+.work-row summary::-webkit-details-marker {
+  display: none;
+}
 
+/* Obsidian curtain that slices open on hover or open */
 .work-row .row-grid {
-  transition: background-color 0.25s ease;
+  position: relative;
+  z-index: 1;
+  transition:
+    color 0.28s var(--ease-out-expo),
+    padding-left 0.28s var(--ease-out-expo),
+    padding-right 0.28s var(--ease-out-expo);
 }
-.work-row:hover .row-grid { background-color: rgba(245, 242, 236, 0.16); }
+.work-row .row-grid::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--ink);
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform 0.32s var(--ease-cut);
+}
+.work-row:hover .row-grid::before,
+.work-row[open] .row-grid::before {
+  transform: scaleY(1);
+}
+.work-row:hover .row-grid,
+.work-row[open] .row-grid {
+  color: var(--bone);
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+.work-row:hover .row-index,
+.work-row[open] .row-index {
+  color: var(--red);
+}
+.work-row:hover .row-sub,
+.work-row[open] .row-sub {
+  color: var(--bone-muted);
+}
 
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.18rem 0.48rem;
+  border: 1px solid currentColor;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+.work-row:hover .status-chip[data-status="active"],
+.work-row[open] .status-chip[data-status="active"],
+.work-row:hover .status-chip[data-status="complete"],
+.work-row[open] .status-chip[data-status="complete"] {
+  background: var(--red);
+  border-color: var(--red);
+  color: var(--ink);
+  font-weight: 700;
+}
+.work-row:hover .status-chip[data-status="research"],
+.work-row[open] .status-chip[data-status="research"],
+.work-row:hover .status-chip[data-status="alpha"],
+.work-row[open] .status-chip[data-status="alpha"] {
+  border-color: var(--bone);
+  color: var(--bone);
+}
+
+.work-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid currentColor;
+  transition: transform 0.32s var(--ease-cut), background-color 0.25s ease, color 0.25s ease;
+}
+.work-row:hover .work-plus {
+  background: var(--red);
+  border-color: var(--red);
+  color: var(--ink);
+}
+.work-row[open] .work-plus {
+  transform: rotate(45deg);
+  background: var(--red);
+  border-color: var(--red);
+  color: var(--ink);
+}
+
+.work-drawer {
+  background: rgba(10, 10, 10, 0.94);
+  color: var(--bone);
+  border-left: 4px solid var(--red);
+  border-right: 1px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
+}
+
+/* ── Rules Interactive Bento Cards ───────────────────────────────────────── */
+.rule-card {
+  --cx: 50%;
+  --cy: 50%;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1.5px solid var(--ink);
+  background: rgba(255, 36, 0, 0.55);
+  transition:
+    background-color 0.35s var(--ease-out-expo),
+    color 0.35s var(--ease-out-expo),
+    transform 0.35s var(--ease-out-expo),
+    box-shadow 0.35s var(--ease-out-expo);
+}
+.rule-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(
+    420px circle at var(--cx) var(--cy),
+    rgba(255, 36, 0, 0.26),
+    transparent 65%
+  );
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.rule-card:hover {
+  background-color: var(--ink);
+  color: var(--bone);
+  transform: translateY(-4px);
+  box-shadow: 8px 8px 0 rgba(10, 10, 10, 0.32);
+}
+.rule-card:hover::before {
+  opacity: 1;
+}
+.rule-card .rule-ghost {
+  font-family: Anton, Impact, sans-serif;
+  font-size: clamp(3.5rem, 6.5vw, 5.8rem);
+  line-height: 0.82;
+  color: var(--ink);
+  transition: color 0.35s ease, transform 0.45s var(--ease-out-expo);
+  pointer-events: none;
+  user-select: none;
+}
+.rule-card:hover .rule-ghost {
+  color: var(--red);
+  transform: scale(1.06) translateX(-4px);
+}
+.rule-card:hover .rule-sub {
+  color: var(--bone-muted);
+}
+.rule-card:hover .rule-num {
+  background: var(--red);
+  color: var(--ink);
+}
+
+/* ── Evidence Ledger Rows ────────────────────────────────────────────────── */
+.evidence-link {
+  position: relative;
+  isolation: isolate;
+  transition:
+    color 0.22s var(--ease-out-expo),
+    padding-left 0.22s var(--ease-out-expo),
+    padding-right 0.22s var(--ease-out-expo);
+}
+.evidence-link::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--ink);
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform 0.22s var(--ease-out-expo);
+}
+.evidence-link:hover,
+.evidence-link:focus-visible {
+  color: var(--bone);
+  padding-left: 0.85rem;
+  padding-right: 0.85rem;
+}
+.evidence-link:hover::before,
+.evidence-link:focus-visible::before {
+  transform: scaleY(1);
+}
+.evidence-link:hover .evidence-repo,
+.evidence-link:focus-visible .evidence-repo {
+  color: var(--red);
+}
+.evidence-link:hover .evidence-basis,
+.evidence-link:focus-visible .evidence-basis {
+  color: var(--bone-muted);
+}
+
+/* ── Reduced Motion ──────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .link-underline::after { transition: none; }
-  .work-plus { transition: none; }
-  html { scroll-behavior: auto; }
+  #page-overlay {
+    display: none !important;
+  }
+  .intro-word,
+  .intro-rule,
+  .intro-meta,
+  .marquee-track,
+  .simd-bar-fill,
+  .status-dot::after {
+    animation: none !important;
+  }
+  .link-underline::after,
+  .work-plus,
+  .work-row .row-grid,
+  .work-row .row-grid::before,
+  .rule-card,
+  .brutal-btn,
+  .brutal-btn::before,
+  .evidence-link,
+  .evidence-link::before,
+  html.js .kinetic-rise {
+    transition: none !important;
+    transform: none !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 /* ── Print ───────────────────────────────────────────────────────────────── */
 @media print {
-  #page-overlay, #cursor-web, .no-print { display: none !important; }
-  body { background: #fff; color: #000; }
+  #page-overlay,
+  #cursor-web,
+  .crimson-atmosphere,
+  .crimson-grain,
+  .marquee-shell,
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+    color: #000;
+  }
 }

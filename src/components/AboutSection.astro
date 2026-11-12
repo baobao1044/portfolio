@@ -1,32 +1,83 @@
 ---
 import { about } from "../data/portfolio";
+
+const stackBars = [
+  { name: "RUST / SIMD / WGPU", pct: "94%" },
+  { name: "PYTHON / LLVM SSA IR", pct: "90%" },
+  { name: "C++ / NT / GRAPHICS HOOKS", pct: "84%" },
+  { name: "TYPESCRIPT / WASM / MV3", pct: "80%" },
+];
 ---
 
-<section id="about" data-section class="border-b border-ink px-5 py-12 md:px-8 md:py-20">
+<section id="about" data-section class="border-b-2 border-ink px-5 py-14 md:px-8 md:py-24">
   <div class="mx-auto max-w-[1500px]">
-    <div class="section-label mb-8 md:mb-12">
-      <span aria-hidden="true">01</span>
-      <h2 class="mono-label">{about.title}</h2>
-      <span class="ml-auto text-ink/90">WHO</span>
+    <div class="section-label mb-10 md:mb-14">
+      <span class="section-index-chip" aria-hidden="true">01</span>
+      <h2 class="mono-label font-bold">{about.title}</h2>
+      <span class="ml-auto font-bold">WHO // ARCHITECTURE</span>
     </div>
 
-    <p class="display display-l max-w-[24ch] text-balance" data-web>{about.lead}</p>
+    <p class="display display-l kinetic-rise max-w-[24ch] text-balance" data-web>
+      {about.lead}
+    </p>
 
-    <div class="mt-12 grid gap-10 md:mt-16 md:grid-cols-12 md:gap-6">
-      <div class="md:col-span-7 flex flex-col gap-5">
-        {about.paragraphs.map((p) => (
-          <p class="max-w-[62ch] text-[15px] leading-[1.6] md:text-base">{p}</p>
-        ))}
+    <div class="mt-12 grid gap-10 md:mt-16 lg:grid-cols-12 lg:gap-8">
+      <div class="flex flex-col gap-6 lg:col-span-7">
+        {
+          about.paragraphs.map((p, idx) => (
+            <p
+              class:list={[
+                "max-w-[62ch] text-[15px] leading-[1.65] md:text-[16px]",
+                idx === 2 && "border-l-4 border-ink bg-bone/15 py-3 pl-4 font-medium",
+              ]}
+            >
+              {p}
+            </p>
+          ))
+        }
       </div>
 
-      <dl class="md:col-span-4 md:col-start-9 flex flex-col gap-5 border-t border-ink pt-5">
-        {about.facts.map((f) => (
-          <div class="flex flex-col gap-1 border-b hairline pb-4">
-            <dt class="mono-label text-ink/90">{f.key}</dt>
-            <dd class="text-[14px] leading-snug md:text-[15px]">{f.value}</dd>
+      <!-- Obsidian System Profile Dossier -->
+      <div
+        class="surface-ink telemetry-card flex flex-col justify-between gap-6 p-6 md:p-7 lg:col-span-5"
+      >
+        <div>
+          <div class="mb-5 flex items-center justify-between border-b border-bone/15 pb-3">
+            <span class="mono-label font-bold text-red">ENGINEER DOSSIER</span>
+            <span class="mono-label text-bone/80">SPEC // 2026</span>
           </div>
-        ))}
-      </dl>
+
+          <dl class="flex flex-col gap-4">
+            {
+              about.facts.map((f) => (
+                <div class="flex flex-col gap-1 border-b border-bone/15 pb-3.5">
+                  <dt class="mono-label font-bold text-red">{f.key}</dt>
+                  <dd class="text-[14px] leading-snug text-bone md:text-[15px]">{f.value}</dd>
+                </div>
+              ))
+            }
+          </dl>
+        </div>
+
+        <div class="pt-1" aria-hidden="true">
+          <p class="mono-label mb-3 text-bone/80">PRIMARY TOOLING DENSITY</p>
+          <div class="flex flex-col gap-2.5">
+            {
+              stackBars.map((bar) => (
+                <div>
+                  <div class="mb-1 flex justify-between font-mono text-[9px] tracking-[0.2em] text-bone">
+                    <span>{bar.name}</span>
+                    <span class="text-red">{bar.pct}</span>
+                  </div>
+                  <div class="h-1.5 w-full bg-bone/15">
+                    <div class="h-full bg-red" style={`width: ${bar.pct}`} />
+                  </div>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
